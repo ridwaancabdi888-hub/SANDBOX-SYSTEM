@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f7f5f2;
+  --foreground: #201a14;
+  --card: #ffffff;
+  --card-foreground: #201a14;
+  --border: #e7e1d8;
+  --muted: #f0ece5;
+  --muted-foreground: #746a5c;
+
+  --brand-50: #fef6ec;
+  --brand-100: #fdead0;
+  --brand-200: #fad2a1;
+  --brand-300: #f6b163;
+  --brand-400: #f28f38;
+  --brand-500: #eb7318;
+  --brand-600: #d95a0f;
+  --brand-700: #b3440f;
+  --brand-800: #8f3714;
+  --brand-900: #742f14;
+
+  --ink-900: #1c1712;
+
+  --status-new: #2563eb;
+  --status-new-bg: #dbeafe;
+  --status-preparing: #d97706;
+  --status-preparing-bg: #fef3c7;
+  --status-ready: #16a34a;
+  --status-ready-bg: #dcfce7;
+  --status-served: #7c3aed;
+  --status-served-bg: #ede9fe;
+  --status-completed: #4b5563;
+  --status-completed-bg: #f3f4f6;
+  --status-cancelled: #dc2626;
+  --status-cancelled-bg: #fee2e2;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-brand-50: var(--brand-50);
+  --color-brand-100: var(--brand-100);
+  --color-brand-200: var(--brand-200);
+  --color-brand-300: var(--brand-300);
+  --color-brand-400: var(--brand-400);
+  --color-brand-500: var(--brand-500);
+  --color-brand-600: var(--brand-600);
+  --color-brand-700: var(--brand-700);
+  --color-brand-800: var(--brand-800);
+  --color-brand-900: var(--brand-900);
+  --color-ink-900: var(--ink-900);
+
+  --font-sans: var(--font-inter);
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+}
+
+@layer utilities {
+  .status-dot {
+    display: inline-block;
+    width: 0.5rem;
+    height: 0.5rem;
+    border-radius: 9999px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: var(--border);
+    border-radius: 9999px;
+  }
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+}
