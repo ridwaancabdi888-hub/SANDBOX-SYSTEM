@@ -41,3 +41,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# Local verification scratch (screenshots, throwaway scripts)
+_*.mjs
+_*.png
+prod-*.png
+shot-*.png
