@@ -9,8 +9,8 @@ import { advanceOrderStatus } from "@/lib/services/orders";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/states";
-import { timeAgo } from "@/lib/utils";
 import type { OrderWithItems } from "@/lib/types/domain";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[] }) {
   const orders = useRealtimeOrders(
@@ -160,7 +160,7 @@ function OrderSummary({ order }: { order: OrderWithItems }) {
             {order.location?.name ?? order.source.replace("_", " ")}
           </div>
         </div>
-        <span className="text-xs text-muted-foreground">{timeAgo(order.created_at)}</span>
+        <span className="text-xs text-muted-foreground"><LocalDateTime value={order.created_at} relative /></span>
       </div>
       <ul className="mt-2 space-y-0.5 text-sm">
         {order.items.map((item) => (

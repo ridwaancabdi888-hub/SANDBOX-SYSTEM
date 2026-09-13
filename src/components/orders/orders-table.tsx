@@ -12,12 +12,13 @@ import { Input, Select } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { EmptyState, PageLoading } from "@/components/ui/states";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { PaymentModal } from "@/components/cashier/payment-modal";
 import { ReprintReceiptModal } from "@/components/cashier/reprint-receipt-modal";
 import { ORDER_STATUS_LABELS } from "@/lib/types/domain";
 import type { OrderWithItems, OrderStatus } from "@/lib/types/domain";
 import type { PrinterProfile, ReceiptSettings } from "@/lib/printing";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 export function OrdersTable({
   initialOrders,
@@ -150,7 +151,7 @@ export function OrdersTable({
                       {formatCurrency(Number(order.total), currency)}
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">
-                      {formatDateTime(order.created_at)}
+                      <LocalDateTime value={order.created_at} />
                     </td>
                     <td className="px-3 py-2">
                       <div className="flex justify-end gap-1">
@@ -199,7 +200,7 @@ export function OrdersTable({
             <div className="flex items-center justify-between">
               <StatusBadge status={viewOrder.status} />
               <span className="text-sm text-muted-foreground">
-                {formatDateTime(viewOrder.created_at)}
+                <LocalDateTime value={viewOrder.created_at} />
               </span>
             </div>
             <div className="text-sm text-muted-foreground">

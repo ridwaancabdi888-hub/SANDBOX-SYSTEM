@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/services/settings";
-import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { EmptyState } from "@/components/ui/states";
 import { PAYMENT_METHOD_LABELS } from "@/lib/types/domain";
 import type { PaymentMethod } from "@/lib/types/domain";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 export const dynamic = "force-dynamic";
 
@@ -48,7 +49,7 @@ export default async function CashierPaymentsPage() {
                   <td className="px-3 py-2 text-muted-foreground">
                     {(p.cashier as { full_name: string } | null)?.full_name ?? "—"}
                   </td>
-                  <td className="px-3 py-2 text-muted-foreground">{formatDateTime(p.created_at)}</td>
+                  <td className="px-3 py-2 text-muted-foreground"><LocalDateTime value={p.created_at} /></td>
                 </tr>
               ))}
             </tbody>

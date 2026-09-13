@@ -6,11 +6,11 @@ import { Plus, Pencil, UserCog } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/states";
-import { formatDateTime } from "@/lib/utils";
 import { ROLE_LABELS } from "@/lib/types/domain";
 import { CreateUserModal } from "./create-user-modal";
 import { EditUserModal } from "./edit-user-modal";
 import type { Profile } from "@/lib/types/domain";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 export function UsersManager({
   initialProfiles,
@@ -69,7 +69,7 @@ export function UsersManager({
                       {p.active ? "Active" : "Inactive"}
                     </Badge>
                   </td>
-                  <td className="px-3 py-2 text-muted-foreground">{formatDateTime(p.created_at)}</td>
+                  <td className="px-3 py-2 text-muted-foreground"><LocalDateTime value={p.created_at} /></td>
                   <td className="px-3 py-2">
                     <div className="flex justify-end">
                       <Button size="sm" variant="ghost" onClick={() => setEditProfile(p)}>

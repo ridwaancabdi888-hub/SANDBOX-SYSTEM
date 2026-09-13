@@ -9,7 +9,7 @@ import { StatusBadge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/states";
-import { cn, formatCurrency, timeAgo } from "@/lib/utils";
+import { cn, formatCurrency } from "@/lib/utils";
 import type {
   Category,
   Product,
@@ -18,6 +18,7 @@ import type {
   OrderWithItems,
 } from "@/lib/types/domain";
 import type { PrinterProfile } from "@/lib/printing";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 export function CashierPos({
   categories,
@@ -86,7 +87,7 @@ export function CashierPos({
                 ))}
               </ul>
               <div className="mt-3 flex items-center justify-between">
-                <span className="text-xs text-muted-foreground">{timeAgo(order.created_at)}</span>
+                <span className="text-xs text-muted-foreground"><LocalDateTime value={order.created_at} relative /></span>
                 <span className="font-bold">{formatCurrency(Number(order.total), settings.currency)}</span>
               </div>
               <Button className="mt-3 w-full" onClick={() => setPayingOrder(order)}>

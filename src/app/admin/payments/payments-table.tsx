@@ -4,9 +4,10 @@ import { Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/states";
 import { downloadCsv } from "@/lib/utils/csv";
-import { formatCurrency, formatDateTime } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { PAYMENT_METHOD_LABELS } from "@/lib/types/domain";
 import type { PaymentMethod } from "@/lib/types/domain";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 interface PaymentRow {
   id: string;
@@ -73,7 +74,7 @@ export function PaymentsTable({ payments, currency }: { payments: PaymentRow[]; 
                   <td className="px-3 py-2">{formatCurrency(Number(p.amount_paid), currency)}</td>
                   <td className="px-3 py-2">{formatCurrency(Number(p.change_amount), currency)}</td>
                   <td className="px-3 py-2 text-muted-foreground">{p.cashier?.full_name ?? "—"}</td>
-                  <td className="px-3 py-2 text-muted-foreground">{formatDateTime(p.created_at)}</td>
+                  <td className="px-3 py-2 text-muted-foreground"><LocalDateTime value={p.created_at} /></td>
                 </tr>
               ))}
             </tbody>

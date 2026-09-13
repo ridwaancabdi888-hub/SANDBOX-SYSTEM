@@ -10,8 +10,9 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/states";
 import { useConfirm } from "@/components/ui/confirm-dialog";
-import { timeAgo, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { OrderWithItems, OrderStatus } from "@/lib/types/domain";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 const COLUMNS: { status: OrderStatus; title: string; icon: typeof Clock; accent: string }[] = [
   { status: "NEW", title: "New Orders", icon: Clock, accent: "border-t-blue-500" },
@@ -112,7 +113,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
                       </div>
                     </div>
                     <div className="text-right text-xs text-muted-foreground">
-                      {timeAgo(order.created_at)}
+                      <LocalDateTime value={order.created_at} relative />
                     </div>
                   </div>
 

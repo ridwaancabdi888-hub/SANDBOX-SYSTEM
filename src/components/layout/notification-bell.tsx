@@ -3,8 +3,9 @@
 import { useState, useRef, useEffect } from "react";
 import { Bell, Volume2, VolumeX, CheckCheck } from "lucide-react";
 import { useNotifications } from "@/lib/hooks/use-notifications";
-import { timeAgo, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import type { Notification } from "@/lib/types/domain";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 export function NotificationBell({
   initial,
@@ -88,7 +89,7 @@ export function NotificationBell({
                     {!n.read && <span className="h-2 w-2 shrink-0 rounded-full bg-brand-600" />}
                   </div>
                   <span className="text-xs text-muted-foreground">{n.message}</span>
-                  <span className="text-[10px] text-muted-foreground">{timeAgo(n.created_at)}</span>
+                  <span className="text-[10px] text-muted-foreground"><LocalDateTime value={n.created_at} relative /></span>
                 </button>
               ))
             )}

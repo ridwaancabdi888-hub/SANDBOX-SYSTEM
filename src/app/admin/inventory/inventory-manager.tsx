@@ -6,10 +6,11 @@ import { Plus, Pencil, PackagePlus, Boxes, History, AlertTriangle } from "lucide
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { EmptyState } from "@/components/ui/states";
-import { formatDateTime, cn } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { IngredientModal } from "./ingredient-modal";
 import { AdjustStockModal } from "./adjust-stock-modal";
 import type { Ingredient, InventoryTransaction } from "@/lib/types/domain";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 type HistoryRow = InventoryTransaction & {
   ingredient: { id: string; name: string; unit: string } | null;
@@ -159,7 +160,7 @@ export function InventoryManager({
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">{tx.user?.full_name ?? "System"}</td>
                     <td className="px-3 py-2 text-muted-foreground">{tx.reason ?? "—"}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{formatDateTime(tx.created_at)}</td>
+                    <td className="px-3 py-2 text-muted-foreground"><LocalDateTime value={tx.created_at} /></td>
                   </tr>
                 ))}
               </tbody>

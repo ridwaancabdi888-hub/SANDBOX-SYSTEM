@@ -4,8 +4,8 @@ import { RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { formatDateTime } from "@/lib/utils";
 import type { PrintJob, PrintJobStatus } from "@/lib/printing";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 const STATUS_VARIANT: Record<PrintJobStatus, "default" | "success" | "warning" | "danger" | "info"> =
   {
@@ -43,7 +43,7 @@ export function PrintQueuePanel({
             <div className="min-w-0">
               <div className="font-medium">{job.label}</div>
               <div className="text-xs text-muted-foreground">
-                {formatDateTime(job.createdAt)}
+                <LocalDateTime value={job.createdAt} />
                 {job.attempts > 1 ? ` · ${job.attempts} attempts` : ""}
               </div>
               {job.error && <div className="mt-0.5 text-xs text-red-700">{job.error}</div>}

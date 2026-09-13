@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getActivityLogs } from "@/lib/services/activity";
 import { EmptyState } from "@/components/ui/states";
 import { Badge } from "@/components/ui/badge";
-import { formatDateTime } from "@/lib/utils";
+import { LocalDateTime } from "@/components/ui/local-time";
 
 export const dynamic = "force-dynamic";
 
@@ -38,7 +38,7 @@ export default async function AdminActivityPage() {
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">{log.entity_type ?? "—"}</td>
                     <td className="px-3 py-2 text-muted-foreground">{log.description ?? "—"}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{formatDateTime(log.created_at)}</td>
+                    <td className="px-3 py-2 text-muted-foreground"><LocalDateTime value={log.created_at} /></td>
                   </tr>
                 );
               })}
