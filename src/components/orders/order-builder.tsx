@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Textarea, Select, Label } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { formatCurrency, cn } from "@/lib/utils";
+import { ALL_CATEGORY, buildMenuFilter } from "@/lib/menu-filter";
 import type { Category, Product, Location } from "@/lib/types/domain";
 
 interface CartLine {
@@ -31,7 +32,9 @@ export function OrderBuilder({
   currency: string;
   onOrderCreated?: (result: { order_id: string; order_number: number }) => void;
 }) {
-  const [activeCategory, setActiveCategory] = useState(categories[0]?.id ?? "");
+  // ALL by default: staff should see the whole menu without hunting through
+  // pills first, which is most of a POS interaction.
+  const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORY);
   const [cart, setCart] = useState<CartLine[]>([]);
   const [locationId, setLocationId] = useState<string>("");
   const [note, setNote] = useState("");
@@ -102,7 +105,11 @@ export function OrderBuilder({
     }
   }
 
-  const activeProducts = categories.find((c) => c.id === activeCategory)?.products ?? [];
+  const menu = useMemo(
+    () => buildMenuFilter(categories, activeCategory),
+    [categories, activeCategory]
+  );
+  const activeProducts = menu.products;
 
   const cartPanel = (
     <div className="flex h-full flex-col">
@@ -121,7 +128,8 @@ export function OrderBuilder({
                 </div>
                 <button
                   onClick={() => removeLine(line.product.id)}
-                  className="text-muted-foreground hover:text-red-600"
+                  aria-label="Remove item"
+                  className="-m-2 flex items-center justify-center p-2 text-muted-foreground hover:text-danger touch:min-h-11 touch:min-w-11"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -130,14 +138,14 @@ export function OrderBuilder({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => updateQty(line.product.id, -1)}
-                    className="flex h-7 w-7 items-center justify-center rounded-md border border-border hover:bg-muted"
+                    className="flex h-9 w-9 items-center justify-center rounded-md border border-border hover:bg-muted touch:h-11 touch:w-11"
                   >
                     <Minus className="h-3.5 w-3.5" />
                   </button>
                   <span className="w-6 text-center text-sm font-medium">{line.quantity}</span>
                   <button
                     onClick={() => updateQty(line.product.id, 1)}
-                    className="flex h-7 w-7 items-center justify-center rounded-md border border-border hover:bg-muted"
+                    className="flex h-9 w-9 items-center justify-center rounded-md border border-border hover:bg-muted touch:h-11 touch:w-11"
                   >
                     <Plus className="h-3.5 w-3.5" />
                   </button>
@@ -151,7 +159,7 @@ export function OrderBuilder({
                 placeholder="Item note (e.g. no onion)"
                 value={line.note}
                 onChange={(e) => updateNote(line.product.id, e.target.value)}
-                className="mt-2 w-full rounded-md border border-border px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400"
+                className="mt-2 w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400 touch:min-h-11 touch:text-sm"
               />
             </div>
           ))
@@ -196,20 +204,33 @@ export function OrderBuilder({
   return (
     <div className="flex flex-1 flex-col lg:flex-row lg:gap-4">
       <div className="flex-1">
-        <div className="mb-3 flex gap-2 overflow-x-auto scrollbar-thin pb-1">
-          {categories.map((cat) => (
+        <div
+          role="tablist"
+          aria-label="Menu categories"
+          className="mb-3 flex gap-2 overflow-x-auto scrollbar-thin pb-1"
+        >
+          {[
+            { id: ALL_CATEGORY, name: "ALL", count: menu.allCount },
+            ...menu.categories.map((c) => ({
+              id: c.id,
+              name: c.name,
+              count: c.products.length,
+            })),
+          ].map((pill) => (
             <button
-              key={cat.id}
-              onClick={() => setActiveCategory(cat.id)}
+              key={pill.id}
+              role="tab"
+              aria-selected={menu.activeId === pill.id}
+              onClick={() => setActiveCategory(pill.id)}
               className={cn(
-                "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                activeCategory === cat.id
+                "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors touch:min-h-11 touch:px-5",
+                menu.activeId === pill.id
                   ? "bg-brand-600 text-white"
                   : "bg-muted text-foreground hover:bg-muted/70"
               )}
             >
-              {cat.name}
-              <span className="ml-1.5 text-xs opacity-70">({cat.products.length})</span>
+              {pill.name}
+              <span className="ml-1.5 text-xs opacity-70">({pill.count})</span>
             </button>
           ))}
         </div>
@@ -218,10 +239,10 @@ export function OrderBuilder({
           {activeProducts.map((product) => (
             <Card
               key={product.id}
-              className="cursor-pointer overflow-hidden transition-shadow hover:shadow-md"
+              className="flex cursor-pointer flex-col overflow-hidden transition-shadow hover:shadow-md active:scale-[0.98]"
               onClick={() => addProduct(product)}
             >
-              <div className="flex h-24 items-center justify-center bg-muted text-3xl">
+              <div className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted text-3xl">
                 {product.image_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={product.image_url} alt={product.name} className="h-full w-full object-cover" />
@@ -229,9 +250,9 @@ export function OrderBuilder({
                   "🍽️"
                 )}
               </div>
-              <div className="p-2.5">
+              <div className="flex flex-1 flex-col justify-end p-2.5">
                 <p className="truncate text-sm font-medium">{product.name}</p>
-                <p className="text-sm font-semibold text-brand-700">
+                <p className="text-sm font-semibold text-accent">
                   {formatCurrency(product.price, currency)}
                 </p>
               </div>
@@ -239,7 +260,9 @@ export function OrderBuilder({
           ))}
           {activeProducts.length === 0 && (
             <p className="col-span-full py-10 text-center text-sm text-muted-foreground">
-              No products in this category
+              {menu.categories.length === 0
+                ? "No products are available right now."
+                : "No products in this category"}
             </p>
           )}
         </div>

@@ -188,7 +188,7 @@ export function PaymentModal({
             </div>
           </div>
 
-          <div className="flex justify-between rounded-lg bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">
+          <div className="flex justify-between rounded-lg bg-success-bg px-3 py-2 text-sm font-semibold text-success">
             <span>Change</span>
             <span>{formatCurrency(change, settings.currency)}</span>
           </div>
@@ -205,7 +205,7 @@ export function PaymentModal({
         </div>
       ) : (
         <div className="space-y-4">
-          <div className="flex items-center justify-center gap-2 text-green-600">
+          <div className="flex items-center justify-center gap-2 text-success">
             <CheckCircle2 className="h-5 w-5" />
             <span className="font-medium">Payment successful</span>
           </div>

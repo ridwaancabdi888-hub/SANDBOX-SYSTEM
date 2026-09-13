@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { signOutAction } from "@/lib/actions/auth";
 import { NotificationBell } from "./notification-bell";
 import { BrandLogo } from "./brand-logo";
+import { ThemeToggleButton } from "./theme-toggle";
 import { NAV_ITEMS_BY_ROLE, activeNavHref, type NavItem } from "./nav-items";
 import { ROLE_LABELS, type AppRole, type Notification } from "@/lib/types/domain";
 
@@ -65,12 +66,13 @@ export function DashboardShell({
       {/* Mobile drawer */}
       {mobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden">
-          <div className="fixed inset-0 bg-black/50" onClick={() => setMobileOpen(false)} />
+          <div className="fixed inset-0 bg-overlay" onClick={() => setMobileOpen(false)} />
           <aside className="fixed inset-y-0 left-0 flex w-72 flex-col bg-card shadow-xl">
             <div className="flex justify-end p-3">
               <button
                 onClick={() => setMobileOpen(false)}
-                className="rounded-lg p-2 hover:bg-muted"
+                aria-label="Close navigation"
+                className="rounded-lg p-2 hover:bg-muted touch:min-h-11 touch:min-w-11 flex items-center justify-center"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -93,17 +95,19 @@ export function DashboardShell({
         <header className="flex h-14 shrink-0 items-center justify-between border-b border-border bg-card px-4">
           <button
             onClick={() => setMobileOpen(true)}
-            className="rounded-lg p-2 hover:bg-muted lg:hidden"
+            aria-label="Open navigation"
+            className="rounded-lg p-2 hover:bg-muted lg:hidden touch:min-h-11 touch:min-w-11 flex items-center justify-center"
           >
             <Menu className="h-5 w-5" />
           </button>
           <div className="hidden lg:block" />
           <div className="flex items-center gap-2">
+            <ThemeToggleButton />
             <NotificationBell initial={notifications} showSoundToggle={showSoundToggle} />
             <form action={signOutAction}>
               <button
                 type="submit"
-                className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted"
+                className="flex items-center gap-1.5 rounded-lg px-2 py-1.5 text-sm text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11 justify-center"
               >
                 <LogOut className="h-4 w-4" />
                 <span className="hidden sm:inline">Sign out</span>
@@ -157,7 +161,7 @@ function SidebarContent({
               onClick={onNavigate}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
+                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors touch:py-3",
                 active
                   ? "bg-brand-600 text-white"
                   : "text-foreground/80 hover:bg-muted hover:text-foreground"

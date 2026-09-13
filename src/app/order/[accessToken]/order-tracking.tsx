@@ -72,9 +72,9 @@ export function OrderTracking({
       </div>
 
       {isCancelled ? (
-        <div className="mb-6 flex flex-col items-center gap-2 rounded-xl bg-red-50 p-6 text-center">
-          <XCircle className="h-8 w-8 text-red-600" />
-          <p className="font-semibold text-red-700">This order was cancelled</p>
+        <div className="mb-6 flex flex-col items-center gap-2 rounded-xl bg-danger-bg p-6 text-center">
+          <XCircle className="h-8 w-8 text-danger" />
+          <p className="font-semibold text-danger">This order was cancelled</p>
         </div>
       ) : (
         <div className="mb-6 space-y-4 rounded-xl border border-border bg-card p-5">
@@ -92,7 +92,7 @@ export function OrderTracking({
                 </div>
                 <span className={`text-sm ${done ? "font-semibold" : "text-muted-foreground"}`}>
                   {step.label}
-                  {isCurrent && <span className="ml-1 text-brand-600">— now</span>}
+                  {isCurrent && <span className="ml-1 text-accent">— now</span>}
                 </span>
               </div>
             );
@@ -113,7 +113,7 @@ export function OrderTracking({
           ))}
         </div>
         {tracking.customer_note && (
-          <p className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs text-amber-800">
+          <p className="mt-2 rounded-md bg-warning-bg px-2 py-1 text-xs text-warning">
             Note: {tracking.customer_note}
           </p>
         )}

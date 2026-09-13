@@ -135,6 +135,7 @@ export function ReportsView({
             {topProducts.length === 0 ? (
               <p className="text-sm text-muted-foreground">No sales in this period</p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <tbody>
                   {topProducts.map((p) => (
@@ -148,6 +149,7 @@ export function ReportsView({
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -160,6 +162,7 @@ export function ReportsView({
             {cashierPerf.length === 0 ? (
               <p className="text-sm text-muted-foreground">No payments in this period</p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <tbody>
                   {cashierPerf.map((c) => (
@@ -173,6 +176,7 @@ export function ReportsView({
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -185,6 +189,7 @@ export function ReportsView({
             {waiterActivity.length === 0 ? (
               <p className="text-sm text-muted-foreground">No activity in this period</p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <tbody>
                   {waiterActivity.map((w) => (
@@ -195,6 +200,7 @@ export function ReportsView({
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </CardContent>
         </Card>
@@ -207,6 +213,7 @@ export function ReportsView({
             {kitchenActivity.length === 0 ? (
               <p className="text-sm text-muted-foreground">No activity in this period</p>
             ) : (
+              <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <tbody>
                   {kitchenActivity.map((k) => (
@@ -217,6 +224,7 @@ export function ReportsView({
                   ))}
                 </tbody>
               </table>
+              </div>
             )}
           </CardContent>
         </Card>

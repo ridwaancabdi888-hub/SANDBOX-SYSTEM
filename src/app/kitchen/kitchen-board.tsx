@@ -75,7 +75,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
   }
 
   return (
-    <div className="flex-1 p-4 lg:p-6">
+    <div className="flex-1 p-3 sm:p-4 lg:p-6">
       <div className="mb-4 flex items-center justify-between">
         <h1 className="text-2xl font-bold">Kitchen Display</h1>
         <span className="text-sm text-muted-foreground">
@@ -83,7 +83,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
         </span>
       </div>
 
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-3">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
         {COLUMNS.map((col) => (
           <div key={col.status} className="flex flex-col gap-3">
             <div className="flex items-center gap-2 px-1">
@@ -134,7 +134,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
                         .map((i) => (
                           <div
                             key={i.id}
-                            className="rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800"
+                            className="rounded-md bg-warning-bg px-2 py-1 text-xs font-medium text-warning"
                           >
                             {i.product_name}: {i.note}
                           </div>
@@ -143,7 +143,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
                   )}
 
                   {order.customer_note && (
-                    <div className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800">
+                    <div className="mt-2 rounded-md bg-warning-bg px-2 py-1 text-xs font-medium text-warning">
                       NOTE: {order.customer_note}
                     </div>
                   )}
@@ -171,7 +171,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
                       </Button>
                     )}
                     {col.status === "READY" && (
-                      <div className="flex-1 rounded-lg bg-green-50 py-2 text-center text-sm font-medium text-green-700">
+                      <div className="flex-1 rounded-lg bg-success-bg py-2 text-center text-sm font-medium text-success">
                         Waiting for waiter…
                       </div>
                     )}

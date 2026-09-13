@@ -10,16 +10,16 @@ const STYLES: Record<
 > = {
   connected: {
     icon: CheckCircle2,
-    className: "bg-green-100 text-green-700",
+    className: "bg-success-bg text-success",
     label: "Connected",
   },
   connecting: {
     icon: Loader2,
-    className: "bg-amber-100 text-amber-700",
+    className: "bg-warning-bg text-warning",
     label: "Connecting",
   },
   idle: { icon: Plug, className: "bg-muted text-muted-foreground", label: "Not connected" },
-  error: { icon: AlertTriangle, className: "bg-red-100 text-red-700", label: "Problem" },
+  error: { icon: AlertTriangle, className: "bg-danger-bg text-danger", label: "Problem" },
   unsupported: { icon: Ban, className: "bg-muted text-muted-foreground", label: "Unavailable" },
 };
 

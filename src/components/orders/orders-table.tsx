@@ -85,6 +85,48 @@ export function OrdersTable({
     }
   }
 
+  /** The same actions in both layouts — defined once so the mobile cards and
+   *  the desktop table can't drift apart. */
+  function rowActions(order: OrderWithItems) {
+    return (
+      <>
+        <Button variant="ghost" size="sm" aria-label={`View order #${order.order_number}`} onClick={() => setViewOrder(order)}>
+          <Eye className="h-4 w-4" />
+        </Button>
+        {showPayAction && !["COMPLETED", "CANCELLED"].includes(order.status) && (
+          <Button size="sm" onClick={() => setPayOrder(order)}>
+            Pay
+          </Button>
+        )}
+        {receiptContext && order.status === "COMPLETED" && (
+          <Button
+            size="sm"
+            variant="outline"
+            title="Reprint receipt"
+            aria-label={`Reprint receipt for order #${order.order_number}`}
+            onClick={() => setReprintOrderId(order.id)}
+          >
+            <Printer className="h-4 w-4" />
+          </Button>
+        )}
+        {showAdminActions && !["COMPLETED", "CANCELLED"].includes(order.status) && (
+          <Button
+            variant="outline"
+            size="sm"
+            aria-label={`Cancel order #${order.order_number}`}
+            onClick={() => handleCancel(order)}
+          >
+            <Ban className="h-4 w-4" />
+          </Button>
+        )}
+      </>
+    );
+  }
+
+  const sorted = [...orders].sort(
+    (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+  );
+
   return (
     <div className="flex flex-1 flex-col">
       <div className="mb-4 flex flex-wrap gap-2">
@@ -119,7 +161,38 @@ export function OrdersTable({
       ) : orders.length === 0 ? (
         <EmptyState title="No orders found" description="Try adjusting your search or filters." />
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-border">
+        <>
+          {/* Below `sm` the seven columns push Total, Time and the action
+              buttons off-screen behind a horizontal scroll — the actions are
+              the whole point of this screen, so phones get cards instead. */}
+          <ul className="space-y-2 sm:hidden">
+            {sorted.map((order) => (
+              <li key={order.id} className="rounded-xl border border-border bg-card p-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="font-semibold">#{order.order_number}</p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {order.location?.name ?? "No location"} · {order.source.replace("_", " ")}
+                    </p>
+                  </div>
+                  <StatusBadge status={order.status} />
+                </div>
+                <div className="mt-2 flex items-center justify-between gap-2 text-sm">
+                  <span className="font-semibold">
+                    {formatCurrency(Number(order.total), currency)}
+                  </span>
+                  <span className="text-xs text-muted-foreground">
+                    <LocalDateTime value={order.created_at} />
+                  </span>
+                </div>
+                <div className="mt-2 flex flex-wrap justify-end gap-1.5 border-t border-border pt-2">
+                  {rowActions(order)}
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <div className="hidden overflow-x-auto rounded-xl border border-border sm:block">
           <table className="w-full text-sm">
             <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
               <tr>
@@ -133,9 +206,7 @@ export function OrdersTable({
               </tr>
             </thead>
             <tbody>
-              {orders
-                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
-                .map((order) => (
+              {sorted.map((order) => (
                   <tr key={order.id} className="border-t border-border hover:bg-muted/40">
                     <td className="px-3 py-2 font-medium">#{order.order_number}</td>
                     <td className="px-3 py-2 text-muted-foreground">
@@ -154,39 +225,14 @@ export function OrdersTable({
                       <LocalDateTime value={order.created_at} />
                     </td>
                     <td className="px-3 py-2">
-                      <div className="flex justify-end gap-1">
-                        <Button variant="ghost" size="sm" onClick={() => setViewOrder(order)}>
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        {showPayAction &&
-                          !["COMPLETED", "CANCELLED"].includes(order.status) && (
-                            <Button size="sm" onClick={() => setPayOrder(order)}>
-                              Pay
-                            </Button>
-                          )}
-                        {receiptContext && order.status === "COMPLETED" && (
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            title="Reprint receipt"
-                            onClick={() => setReprintOrderId(order.id)}
-                          >
-                            <Printer className="h-4 w-4" />
-                          </Button>
-                        )}
-                        {showAdminActions &&
-                          !["COMPLETED", "CANCELLED"].includes(order.status) && (
-                            <Button variant="outline" size="sm" onClick={() => handleCancel(order)}>
-                              <Ban className="h-4 w-4" />
-                            </Button>
-                          )}
-                      </div>
+                      <div className="flex justify-end gap-1">{rowActions(order)}</div>
                     </td>
                   </tr>
                 ))}
             </tbody>
           </table>
-        </div>
+          </div>
+        </>
       )}
 
       <Modal
@@ -215,11 +261,11 @@ export function OrdersTable({
                     </span>
                     <span>{formatCurrency(Number(i.subtotal), currency)}</span>
                   </div>
-                  {i.note && <div className="text-xs italic text-amber-700">Note: {i.note}</div>}
+                  {i.note && <div className="text-xs italic text-warning">Note: {i.note}</div>}
                 </div>
               ))}
               {viewOrder.customer_note && (
-                <div className="mt-2 border-t border-border pt-2 text-xs italic text-amber-700">
+                <div className="mt-2 border-t border-border pt-2 text-xs italic text-warning">
                   Order note: {viewOrder.customer_note}
                 </div>
               )}

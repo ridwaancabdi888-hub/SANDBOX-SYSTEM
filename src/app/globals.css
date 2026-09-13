@@ -1,6 +1,16 @@
 @import "tailwindcss";
 
+/* Class-based dark mode. The `.dark` class is set on <html> by the blocking
+   script in the root layout, before first paint. */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Coarse pointer = finger. Grows hit areas on phones and tablets without
+   loosening the denser desktop layout a mouse handles fine. */
+@custom-variant touch (@media (pointer: coarse));
+
 :root {
+  color-scheme: light;
+
   --background: #f7f5f2;
   --foreground: #201a14;
   --card: #ffffff;
@@ -8,6 +18,14 @@
   --border: #e7e1d8;
   --muted: #f0ece5;
   --muted-foreground: #746a5c;
+
+  /* Surface that must stay light in both themes: receipts are printed on
+     white paper, so the preview is white paper. */
+  --paper: #ffffff;
+  --paper-foreground: #000000;
+
+  /* Scrim behind modals. */
+  --overlay: rgb(0 0 0 / 0.5);
 
   --brand-50: #fef6ec;
   --brand-100: #fdead0;
@@ -20,7 +38,24 @@
   --brand-800: #8f3714;
   --brand-900: #742f14;
 
+  /* Brand used as *text* on a page/card surface. Tracks the scale in light
+     mode and inverts in dark, where #b3440f on a dark card is unreadable. */
+  --accent: #b3440f;
+
   --ink-900: #1c1712;
+
+  /* Semantic tones. Each pair is a tinted surface plus text that meets
+     contrast on it, so badges and pills never need per-theme classes. */
+  --tone-success: #15803d;
+  --tone-success-bg: #dcfce7;
+  --tone-warning: #b45309;
+  --tone-warning-bg: #fef3c7;
+  --tone-danger: #b91c1c;
+  --tone-danger-bg: #fee2e2;
+  --tone-info: #1d4ed8;
+  --tone-info-bg: #dbeafe;
+  --tone-brand: #8f3714;
+  --tone-brand-bg: #fdead0;
 
   --status-new: #2563eb;
   --status-new-bg: #dbeafe;
@@ -36,6 +71,70 @@
   --status-cancelled-bg: #fee2e2;
 }
 
+/*
+  Dark theme.
+
+  Designed, not inverted: the greys carry the same warm hue as the light
+  palette (hsl ~30deg) so the orange still belongs, surfaces step up in
+  lightness as they come forward (background -> card -> muted) rather than
+  relying on borders alone, and every tinted tone is rebuilt as a dark,
+  desaturated surface with a light foreground instead of a flipped tint.
+*/
+.dark {
+  color-scheme: dark;
+
+  --background: #15120e;
+  --foreground: #f1ece5;
+  --card: #201b16;
+  --card-foreground: #f1ece5;
+  --border: #362f27;
+  --muted: #2a241e;
+  --muted-foreground: #a99d8c;
+
+  --overlay: rgb(0 0 0 / 0.65);
+
+  /* Fills stay vivid; the pale end of the scale becomes dark tint surfaces so
+     `bg-brand-100` remains a *subtle* background rather than a glaring one. */
+  --brand-50: #2a1608;
+  --brand-100: #3a1d09;
+  --brand-200: #55290b;
+  --brand-300: #7a3a0e;
+  --brand-400: #f28f38;
+  --brand-500: #ef8526;
+  --brand-600: #e4761b;
+  --brand-700: #c85f12;
+  --brand-800: #a94e10;
+  --brand-900: #8a3f0f;
+
+  --accent: #f6b163;
+
+  --ink-900: #f1ece5;
+
+  --tone-success: #6ee7a8;
+  --tone-success-bg: #0d2c1c;
+  --tone-warning: #fbbf5a;
+  --tone-warning-bg: #33230a;
+  --tone-danger: #fca5a5;
+  --tone-danger-bg: #3a1414;
+  --tone-info: #93c0fd;
+  --tone-info-bg: #14243f;
+  --tone-brand: #f6b163;
+  --tone-brand-bg: #3a1d09;
+
+  --status-new: #8ab6fd;
+  --status-new-bg: #16233a;
+  --status-preparing: #f5bf62;
+  --status-preparing-bg: #33250c;
+  --status-ready: #6ee7a8;
+  --status-ready-bg: #0f2c1e;
+  --status-served: #c4b0fb;
+  --status-served-bg: #241c3d;
+  --status-completed: #b9b2a7;
+  --status-completed-bg: #2b2620;
+  --status-cancelled: #fca5a5;
+  --status-cancelled-bg: #3a1616;
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -44,6 +143,10 @@
   --color-border: var(--border);
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
+
+  --color-paper: var(--paper);
+  --color-paper-foreground: var(--paper-foreground);
+  --color-overlay: var(--overlay);
 
   --color-brand-50: var(--brand-50);
   --color-brand-100: var(--brand-100);
@@ -55,7 +158,19 @@
   --color-brand-700: var(--brand-700);
   --color-brand-800: var(--brand-800);
   --color-brand-900: var(--brand-900);
+  --color-accent: var(--accent);
   --color-ink-900: var(--ink-900);
+
+  --color-success: var(--tone-success);
+  --color-success-bg: var(--tone-success-bg);
+  --color-warning: var(--tone-warning);
+  --color-warning-bg: var(--tone-warning-bg);
+  --color-danger: var(--tone-danger);
+  --color-danger-bg: var(--tone-danger-bg);
+  --color-info: var(--tone-info);
+  --color-info-bg: var(--tone-info-bg);
+  --color-tone-brand: var(--tone-brand);
+  --color-tone-brand-bg: var(--tone-brand-bg);
 
   --font-sans: var(--font-inter);
 }

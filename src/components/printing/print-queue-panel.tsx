@@ -46,7 +46,7 @@ export function PrintQueuePanel({
                 <LocalDateTime value={job.createdAt} />
                 {job.attempts > 1 ? ` · ${job.attempts} attempts` : ""}
               </div>
-              {job.error && <div className="mt-0.5 text-xs text-red-700">{job.error}</div>}
+              {job.error && <div className="mt-0.5 text-xs text-danger">{job.error}</div>}
             </div>
             <div className="flex items-center gap-2">
               <Badge variant={STATUS_VARIANT[job.status]}>{job.status}</Badge>

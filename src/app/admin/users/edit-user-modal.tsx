@@ -80,13 +80,13 @@ export function EditUserModal({
           </Select>
           {isSelf && <p className="mt-1 text-xs text-muted-foreground">You cannot change your own role.</p>}
         </div>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm touch:min-h-11">
           <input
             type="checkbox"
             checked={active}
             disabled={isSelf}
             onChange={(e) => setActive(e.target.checked)}
-            className="h-4 w-4 rounded border-border"
+            className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
           />
           Active {isSelf && "(you cannot deactivate yourself)"}
         </label>

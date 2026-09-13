@@ -77,6 +77,59 @@ Active state comes from `activeNavHref` (`nav-active.ts`), which picks the
 every section index (`/admin`) prefixes its children, so that lights up two items
 at once. It's covered by tests.
 
+## Theming
+
+Light and dark both come from CSS variables in `globals.css` — `:root` and
+`.dark`. There is **one** theme system; don't add another.
+
+- The `.dark` class is set by the blocking script in the root layout before
+  first paint (`theme-script.tsx`). That is what prevents a white flash, and
+  why `<html>` carries `suppressHydrationWarning` — the script deliberately
+  changes what the server rendered.
+- Theme is **device-local** (`use-theme.ts` / localStorage), like printer
+  selection. It is not a cafeteria-wide setting.
+- Style against tokens, never fixed palette shades. `bg-card`, `border-border`,
+  `text-muted-foreground` adapt on their own; `bg-amber-50 text-amber-900` does
+  not and will be unreadable in dark. For tinted states use the tone pairs:
+  `bg-success-bg text-success`, and likewise `warning`, `danger`, `info`,
+  `tone-brand`.
+- Brand as a *fill* stays `bg-brand-600 text-white`. Brand as *text* on a card
+  uses `text-accent`, which inverts for dark — `text-brand-700` on a dark card
+  fails contrast.
+- `bg-paper` / `text-paper-foreground` stay light in both themes on purpose:
+  that is the receipt, which is printed on white paper.
+
+## Menu filtering
+
+All three ordering surfaces (cashier, waiter, customer QR) share
+`buildMenuFilter` (`src/lib/menu-filter.ts`) and default to the `ALL` pill.
+One query loads categories-with-products; filtering is client-side, so tapping
+a pill costs nothing. The helper drops empty categories, de-duplicates products
+under ALL, and falls back to ALL for an unknown id. Covered by tests.
+
+## Responsive & touch
+
+Breakpoints follow Tailwind defaults; the sidebar is desktop-only (`lg:`) and a
+drawer takes over below that.
+
+- **`touch:`** is a custom variant for `(pointer: coarse)`. Use it to grow hit
+  areas on phones and tablets — `touch:min-h-11` — instead of enlarging the
+  control everywhere, which would loosen the desktop layout a mouse handles
+  fine. 44px is the target.
+- Every `<table>` lives inside an `overflow-x-auto` wrapper. `overflow-hidden`
+  is not a substitute: it clips the columns instead of letting them scroll,
+  which makes row actions unreachable.
+- Where a table carries row actions, those stay reachable on a phone: the
+  orders table renders cards below `sm`, and users/expenses/inventory pin the
+  actions column with `sticky right-0`.
+- Product cards are flex columns with the price/action block on `mt-auto`, so
+  cards in a row end level whether or not an item has a description. Don't
+  combine `mt-auto` with another `mt-*` — they fight over the same property.
+- Images sit in an `aspect-[4/3]` box with `object-cover`, never `object-fill`.
+
+`npm test` includes static guard rails for these (fixed pixel widths, table
+wrappers, the touch variant, modal scroll structure).
+
 ## Printing
 
 `src/lib/printing/` is a transport-agnostic gateway:
@@ -108,9 +161,9 @@ Facts that decide the design; don't re-litigate them:
 - Don't use TypeScript **parameter properties** (`constructor(private x)`) in
   this module: tests run under Node's type-stripping, which rejects them.
 
-Changing any of it? Run `npm test` — 65 tests cover encoding, layout, capability
-gating, logo raster gating, the queue (ordering, dedupe, retry, failure) and
-every adapter against mock printers.
+Changing any of it? Run `npm test` — 85 tests cover encoding, layout, capability
+gating, logo raster gating, the queue (ordering, dedupe, retry, failure), every
+adapter against mock printers, the menu ALL filter and the responsive guards.
 
 ## Checks before calling something done
 

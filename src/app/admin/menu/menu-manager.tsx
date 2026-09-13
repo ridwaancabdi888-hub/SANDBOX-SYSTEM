@@ -128,7 +128,7 @@ export function MenuManager({
                         {product.available ? "Available" : "Hidden"}
                       </Badge>
                     </div>
-                    <p className="mt-1 font-bold text-brand-700">
+                    <p className="mt-1 font-bold text-accent">
                       {formatCurrency(product.price, currency)}
                     </p>
                     <div className="mt-2 flex gap-2">
@@ -157,7 +157,7 @@ export function MenuManager({
               <Plus className="h-4 w-4" /> New Category
             </Button>
           </div>
-          <div className="overflow-hidden rounded-xl border border-border">
+          <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
                 <tr>
@@ -238,7 +238,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+        "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors touch:min-h-11 touch:px-4",
         active ? "bg-brand-600 text-white" : "bg-muted hover:bg-muted/70"
       )}
     >

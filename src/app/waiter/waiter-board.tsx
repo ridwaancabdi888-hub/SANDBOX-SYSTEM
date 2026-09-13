@@ -67,7 +67,7 @@ export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[]
       <h1 className="mb-4 text-2xl font-bold">Waiter Dashboard</h1>
 
       <section className="mb-6">
-        <SectionHeader icon={Bell} title="Ready for Pickup" count={ready.length} accent="text-green-600" />
+        <SectionHeader icon={Bell} title="Ready for Pickup" count={ready.length} accent="text-success" />
         {ready.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
             Nothing ready yet
@@ -75,7 +75,7 @@ export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[]
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {ready.map((order) => (
-              <Card key={order.id} className="border-2 border-green-400 bg-green-50/40 p-4">
+              <Card key={order.id} className="border-2 border-success/60 bg-success-bg/40 p-4">
                 <OrderSummary order={order} />
                 <Button
                   size="xl"
@@ -93,7 +93,7 @@ export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[]
       </section>
 
       <section className="mb-6">
-        <SectionHeader icon={ChefHat} title="In the Kitchen" count={inProgress.length} accent="text-amber-600" />
+        <SectionHeader icon={ChefHat} title="In the Kitchen" count={inProgress.length} accent="text-warning" />
         {inProgress.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
             No orders in progress
@@ -170,7 +170,7 @@ function OrderSummary({ order }: { order: OrderWithItems }) {
         ))}
       </ul>
       {order.customer_note && (
-        <div className="mt-2 rounded-md bg-amber-50 px-2 py-1 text-xs font-medium text-amber-800">
+        <div className="mt-2 rounded-md bg-warning-bg px-2 py-1 text-xs font-medium text-warning">
           NOTE: {order.customer_note}
         </div>
       )}

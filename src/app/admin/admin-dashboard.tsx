@@ -14,10 +14,10 @@ import { ORDER_STATUS_LABELS, type OrderWithItems, type Ingredient } from "@/lib
 const ACTIVE_ORDER_LIMIT = 8;
 
 const STATUS_STYLES: Record<string, string> = {
-  NEW: "bg-blue-50 text-blue-700",
-  PREPARING: "bg-amber-50 text-amber-700",
-  READY: "bg-green-50 text-green-700",
-  SERVED: "bg-emerald-50 text-emerald-700",
+  NEW: "bg-info-bg text-info",
+  PREPARING: "bg-warning-bg text-warning",
+  READY: "bg-success-bg text-success",
+  SERVED: "bg-success-bg text-success",
 };
 
 type Report = Awaited<ReturnType<typeof getSalesReport>>;
@@ -119,18 +119,18 @@ export function AdminDashboard({
         </Select>
       </div>
 
-      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4 xl:grid-cols-7">
+      <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 xl:grid-cols-7">
         <StatCard icon={DollarSign} label="Sales" value={formatCurrency(report.totalSales, currency)} />
         <StatCard icon={ClipboardList} label="Orders" value={report.totalOrders} />
-        <StatCard icon={ClipboardList} label="Pending" value={counts.new} accent="text-blue-600" />
-        <StatCard icon={ChefHat} label="Preparing" value={counts.preparing} accent="text-amber-600" />
-        <StatCard icon={Bell} label="Ready" value={counts.ready} accent="text-green-600" />
-        <StatCard icon={CheckCircle2} label="Completed" value={completedToday} accent="text-emerald-600" />
+        <StatCard icon={ClipboardList} label="Pending" value={counts.new} accent="text-info" />
+        <StatCard icon={ChefHat} label="Preparing" value={counts.preparing} accent="text-warning" />
+        <StatCard icon={Bell} label="Ready" value={counts.ready} accent="text-success" />
+        <StatCard icon={CheckCircle2} label="Completed" value={completedToday} accent="text-success" />
         <StatCard
           icon={AlertTriangle}
           label="Low Stock"
           value={lowStock.length}
-          accent={lowStock.length > 0 ? "text-red-600" : undefined}
+          accent={lowStock.length > 0 ? "text-danger" : undefined}
         />
       </div>
 
@@ -256,18 +256,18 @@ export function AdminDashboard({
       </Card>
 
       {lowStock.length > 0 && (
-        <Card className="border-red-200 bg-red-50/50">
+        <Card className="border-danger/30 bg-danger-bg/50">
           <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-red-800">
+            <CardTitle className="flex items-center gap-2 text-danger">
               <AlertTriangle className="h-4 w-4" /> Low Stock Alert
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-4">
               {lowStock.map((ing) => (
-                <div key={ing.id} className="rounded-lg bg-white px-3 py-2 text-sm shadow-sm">
+                <div key={ing.id} className="rounded-lg bg-card px-3 py-2 text-sm shadow-sm">
                   <div className="font-medium">{ing.name}</div>
-                  <div className="text-xs text-red-600">
+                  <div className="text-xs text-danger">
                     {ing.current_quantity} / {ing.minimum_quantity} {ing.unit}
                   </div>
                 </div>

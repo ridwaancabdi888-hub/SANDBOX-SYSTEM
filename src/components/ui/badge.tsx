@@ -12,11 +12,11 @@ export function Badge({
 }) {
   const variants: Record<string, string> = {
     default: "bg-muted text-muted-foreground",
-    brand: "bg-brand-100 text-brand-800",
-    success: "bg-green-100 text-green-700",
-    warning: "bg-amber-100 text-amber-700",
-    danger: "bg-red-100 text-red-700",
-    info: "bg-blue-100 text-blue-700",
+    brand: "bg-tone-brand-bg text-tone-brand",
+    success: "bg-success-bg text-success",
+    warning: "bg-warning-bg text-warning",
+    danger: "bg-danger-bg text-danger",
+    info: "bg-info-bg text-info",
   };
 
   return (

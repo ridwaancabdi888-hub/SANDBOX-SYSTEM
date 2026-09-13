@@ -60,12 +60,12 @@ export function LocationModal({
           <Label htmlFor="l-code">Code (used in URL)</Label>
           <Input id="l-code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="seat-09" />
         </div>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm touch:min-h-11">
           <input
             type="checkbox"
             checked={active}
             onChange={(e) => setActive(e.target.checked)}
-            className="h-4 w-4 rounded border-border"
+            className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
           />
           Active
         </label>

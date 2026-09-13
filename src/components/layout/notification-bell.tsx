@@ -31,7 +31,7 @@ export function NotificationBell({
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative rounded-lg p-2 text-muted-foreground hover:bg-muted"
+        className="relative flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
         aria-label="Notifications"
       >
         <Bell className="h-5 w-5" />
@@ -43,14 +43,14 @@ export function NotificationBell({
       </button>
 
       {open && (
-        <div className="absolute right-0 z-40 mt-2 w-80 max-w-[90vw] rounded-xl border border-border bg-card shadow-lg">
+        <div className="absolute right-0 z-40 mt-2 w-80 max-w-[calc(100vw-1.5rem)] rounded-xl border border-border bg-card shadow-lg">
           <div className="flex items-center justify-between border-b border-border p-3">
             <span className="font-semibold text-sm">Notifications</span>
             <div className="flex items-center gap-1">
               {showSoundToggle && (
                 <button
                   onClick={toggleSound}
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
+                  className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
                   title={soundEnabled ? "Mute sound" : "Enable sound"}
                 >
                   {soundEnabled ? (
@@ -63,7 +63,7 @@ export function NotificationBell({
               {unreadCount > 0 && (
                 <button
                   onClick={markAllRead}
-                  className="rounded-md p-1.5 text-muted-foreground hover:bg-muted"
+                  className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
                   title="Mark all read"
                 >
                   <CheckCheck className="h-4 w-4" />

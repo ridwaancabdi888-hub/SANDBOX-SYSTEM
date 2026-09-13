@@ -254,7 +254,7 @@ export function PrinterManager({
             <div
               className={cn(
                 "flex items-start gap-2 rounded-lg px-3 py-2 text-xs",
-                supported ? "bg-blue-50 text-blue-800" : "bg-amber-50 text-amber-800"
+                supported ? "bg-info-bg text-info" : "bg-warning-bg text-warning"
               )}
             >
               {supported ? (
@@ -275,13 +275,13 @@ export function PrinterManager({
                 </div>
                 <div className="rounded-lg border border-border px-3 py-2">
                   <div className="text-muted-foreground">Last error</div>
-                  <div className="font-medium text-red-700">{status.lastError ?? "—"}</div>
+                  <div className="font-medium text-danger">{status.lastError ?? "—"}</div>
                 </div>
               </div>
             )}
 
             {lastError && (
-              <div className="space-y-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">
+              <div className="space-y-2 rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
                 <p className="font-medium">🔴 {lastError.message}</p>
                 {lastError.hint && <p className="text-xs">{lastError.hint}</p>}
                 <div className="flex flex-wrap gap-2">
@@ -578,7 +578,7 @@ export function PrinterManager({
                       ["supportsImages", "Supports images/logos"],
                     ] as const
                   ).map(([key, label]) => (
-                    <label key={key} className="flex items-center gap-2 text-sm">
+                    <label key={key} className="flex items-center gap-2 text-sm touch:min-h-11">
                       <input
                         type="checkbox"
                         checked={editing.capabilities[key]}
@@ -587,7 +587,7 @@ export function PrinterManager({
                             capabilities: { ...editing.capabilities, [key]: e.target.checked },
                           })
                         }
-                        className="h-4 w-4 rounded border-border"
+                        className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
                       />
                       {label}
                     </label>
@@ -595,12 +595,12 @@ export function PrinterManager({
                 </div>
               </fieldset>
 
-              <label className="flex items-center gap-2 text-sm">
+              <label className="flex items-center gap-2 text-sm touch:min-h-11">
                 <input
                   type="checkbox"
                   checked={editing.autoReconnect}
                   onChange={(e) => patchDraft({ autoReconnect: e.target.checked })}
-                  className="h-4 w-4 rounded border-border"
+                  className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
                 />
                 Reconnect automatically if the printer drops
               </label>
@@ -621,8 +621,8 @@ export function PrinterManager({
 
         <PrintQueuePanel jobs={jobs} onRetry={(id) => service.retry(id)} />
 
-        <Card className="border-amber-200 bg-amber-50/50">
-          <CardContent className="pt-5 text-xs text-amber-900">
+        <Card className="border-warning/30 bg-warning-bg/50">
+          <CardContent className="pt-5 text-xs text-warning">
             <p className="font-semibold">Hardware verification status</p>
             <p className="mt-1">
               Only <strong>browser/system print</strong> has been verified end to end here, plus
@@ -639,7 +639,7 @@ export function PrinterManager({
           <CardTitle>Test receipt preview</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="overflow-x-auto rounded-lg border border-border bg-white p-2">
+          <div className="overflow-x-auto rounded-lg border border-border bg-paper p-2">
             <ReceiptDocument data={sample} profile={editing} />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">

@@ -159,12 +159,12 @@ export function ProductModal({
               <Input id="p-sku" value={sku} onChange={(e) => setSku(e.target.value)} />
             </div>
           </div>
-          <label className="flex items-center gap-2 text-sm">
+          <label className="flex items-center gap-2 text-sm touch:min-h-11">
             <input
               type="checkbox"
               checked={available}
               onChange={(e) => setAvailable(e.target.checked)}
-              className="h-4 w-4 rounded border-border"
+              className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
             />
             Available for ordering
           </label>
@@ -233,7 +233,7 @@ export function ProductModal({
                 />
                 <button
                   onClick={() => removeRecipeLine(idx)}
-                  className="text-muted-foreground hover:text-red-600"
+                  className="text-muted-foreground hover:text-danger"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>

@@ -73,7 +73,7 @@ export function InventoryManager({
                     <th className="px-3 py-2">Cost/unit</th>
                     <th className="px-3 py-2">Supplier</th>
                     <th className="px-3 py-2">Status</th>
-                    <th className="px-3 py-2 text-right">Actions</th>
+                    <th className="sticky right-0 z-10 bg-muted px-3 py-2 text-right shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)] sm:static sm:shadow-none">Actions</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -82,7 +82,7 @@ export function InventoryManager({
                     return (
                       <tr key={ing.id} className="border-t border-border">
                         <td className="px-3 py-2 font-medium">{ing.name}</td>
-                        <td className={cn("px-3 py-2", low && "font-semibold text-red-600")}>
+                        <td className={cn("px-3 py-2", low && "font-semibold text-danger")}>
                           {ing.current_quantity} {ing.unit}
                         </td>
                         <td className="px-3 py-2 text-muted-foreground">
@@ -101,7 +101,9 @@ export function InventoryManager({
                             <Badge variant="success">OK</Badge>
                           )}
                         </td>
-                        <td className="px-3 py-2">
+                        {/* Pinned right so Adjust/Edit stay reachable while
+                            this wide table scrolls on a phone. */}
+                        <td className="sticky right-0 z-10 bg-card px-3 py-2 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)] sm:static sm:shadow-none">
                           <div className="flex justify-end gap-1">
                             <Button
                               size="sm"
@@ -207,7 +209,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors",
+        "flex items-center gap-2 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors touch:min-h-11 touch:px-4",
         active ? "bg-brand-600 text-white" : "bg-muted hover:bg-muted/70"
       )}
     >

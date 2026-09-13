@@ -47,7 +47,7 @@ export function CashierPos({
         </TabButton>
         <TabButton active={tab === "pending"} onClick={() => setTab("pending")} icon={ClipboardList}>
           Awaiting Payment
-          <span className="ml-1.5 rounded-full bg-black/10 px-1.5 text-xs">{orders.length}</span>
+          <span className="ml-1.5 rounded-full bg-current/15 px-1.5 text-xs">{orders.length}</span>
         </TabButton>
       </div>
 
@@ -125,7 +125,7 @@ function TabButton({
     <button
       onClick={onClick}
       className={cn(
-        "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors",
+        "flex items-center gap-2 rounded-lg px-4 py-2 text-sm font-medium transition-colors touch:min-h-11 touch:px-4",
         active ? "bg-brand-600 text-white" : "bg-muted hover:bg-muted/70"
       )}
     >

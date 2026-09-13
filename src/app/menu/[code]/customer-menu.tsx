@@ -12,6 +12,7 @@ import { BrandLogo } from "@/components/layout/brand-logo";
 import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/input";
 import { formatCurrency, cn } from "@/lib/utils";
+import { ALL_CATEGORY, buildMenuFilter } from "@/lib/menu-filter";
 import type { Category, Product } from "@/lib/types/domain";
 
 export function CustomerMenu({
@@ -30,7 +31,9 @@ export function CustomerMenu({
   categories: (Category & { products: Product[] })[];
 }) {
   const router = useRouter();
-  const [activeCategory, setActiveCategory] = useState(categories[0]?.id ?? "");
+  // ALL by default: a customer who just scanned a QR code should see the
+  // menu, not one arbitrary category.
+  const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORY);
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const { items, orderNote, addItem, incrementItem, decrementItem, updateItemNote, setOrderNote, clear } =
@@ -38,7 +41,11 @@ export function CustomerMenu({
 
   const total = useMemo(() => cartTotal(items), [items]);
   const count = useMemo(() => cartCount(items), [items]);
-  const activeProducts = categories.find((c) => c.id === activeCategory)?.products ?? [];
+  const menu = useMemo(
+    () => buildMenuFilter(categories, activeCategory),
+    [categories, activeCategory]
+  );
+  const activeProducts = menu.products;
 
   async function submitOrder() {
     if (items.length === 0) return;
@@ -73,14 +80,20 @@ export function CustomerMenu({
             </div>
           </div>
         </div>
-        <div className="mx-auto flex max-w-2xl gap-2 overflow-x-auto scrollbar-thin px-4 pb-3">
-          {categories.map((cat) => (
+        <div
+          role="tablist"
+          aria-label="Menu categories"
+          className="mx-auto flex max-w-2xl gap-2 overflow-x-auto scrollbar-thin px-4 pb-3"
+        >
+          {[{ id: ALL_CATEGORY, name: "ALL" }, ...menu.categories].map((cat) => (
             <button
               key={cat.id}
+              role="tab"
+              aria-selected={menu.activeId === cat.id}
               onClick={() => setActiveCategory(cat.id)}
               className={cn(
-                "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors",
-                activeCategory === cat.id
+                "shrink-0 rounded-full px-4 py-1.5 text-sm font-medium transition-colors touch:min-h-11 touch:px-5",
+                menu.activeId === cat.id
                   ? "bg-brand-600 text-white"
                   : "bg-muted text-foreground hover:bg-muted/70"
               )}
@@ -92,7 +105,7 @@ export function CustomerMenu({
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-4">
-        {categories.length === 0 ? (
+        {menu.categories.length === 0 ? (
           <p className="py-16 text-center text-sm text-muted-foreground">
             No items are available right now. Please check back soon.
           </p>
@@ -103,9 +116,9 @@ export function CustomerMenu({
               return (
                 <div
                   key={product.id}
-                  className="overflow-hidden rounded-xl border border-border bg-card"
+                  className="flex flex-col overflow-hidden rounded-xl border border-border bg-card"
                 >
-                  <div className="flex h-24 items-center justify-center bg-muted text-3xl">
+                  <div className="flex aspect-[4/3] items-center justify-center overflow-hidden bg-muted text-3xl">
                     {product.image_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
@@ -117,31 +130,36 @@ export function CustomerMenu({
                       "🍽️"
                     )}
                   </div>
-                  <div className="p-2.5">
+                  <div className="flex flex-1 flex-col p-2.5">
                     <p className="truncate text-sm font-medium">{product.name}</p>
                     {product.description && (
                       <p className="truncate text-xs text-muted-foreground">{product.description}</p>
                     )}
-                    <div className="mt-1.5 flex items-center justify-between">
-                      <span className="text-sm font-bold text-brand-700">
+                    {/* Price above the action, not beside it: at 320px a card
+                        is ~118px of content, which cannot hold a price and a
+                        thumb-sized stepper on one line. */}
+                    <div className="mt-auto space-y-2 pt-2">
+                      <span className="block text-sm font-bold text-accent">
                         {formatCurrency(product.price, currency)}
                       </span>
                       {inCart ? (
-                        <div className="flex items-center gap-1.5">
+                        <div className="flex items-center justify-between gap-1 rounded-full bg-muted p-1">
                           <button
                             onClick={() => decrementItem(product.id)}
-                            className="flex h-6 w-6 items-center justify-center rounded-full bg-muted"
+                            aria-label={`Remove one ${product.name}`}
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-card text-foreground shadow-sm touch:h-10 touch:w-10"
                           >
-                            <Minus className="h-3 w-3" />
+                            <Minus className="h-4 w-4" />
                           </button>
-                          <span className="w-4 text-center text-xs font-semibold">
+                          <span className="min-w-6 text-center text-sm font-semibold tabular-nums">
                             {inCart.quantity}
                           </span>
                           <button
                             onClick={() => incrementItem(product.id)}
-                            className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-white"
+                            aria-label={`Add one more ${product.name}`}
+                            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white touch:h-10 touch:w-10"
                           >
-                            <Plus className="h-3 w-3" />
+                            <Plus className="h-4 w-4" />
                           </button>
                         </div>
                       ) : (
@@ -154,7 +172,8 @@ export function CustomerMenu({
                               imageUrl: product.image_url,
                             })
                           }
-                          className="rounded-full bg-brand-600 px-2.5 py-1 text-xs font-semibold text-white hover:bg-brand-700"
+                          aria-label={`Add ${product.name} to your order`}
+                          className="w-full rounded-full bg-brand-600 px-2.5 py-2 text-xs font-semibold text-white hover:bg-brand-700 touch:min-h-11 touch:text-sm"
                         >
                           Add
                         </button>
@@ -188,7 +207,7 @@ export function CustomerMenu({
           {items.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">Your cart is empty</p>
           ) : (
-            <div className="max-h-80 space-y-2 overflow-y-auto scrollbar-thin">
+            <div className="max-h-[40vh] space-y-2 overflow-y-auto scrollbar-thin sm:max-h-80">
               {items.map((item) => (
                 <div key={item.productId} className="rounded-lg border border-border p-2.5">
                   <div className="flex items-center justify-between">
@@ -200,16 +219,20 @@ export function CustomerMenu({
                   <div className="mt-1.5 flex items-center gap-2">
                     <button
                       onClick={() => decrementItem(item.productId)}
-                      className="flex h-6 w-6 items-center justify-center rounded-full bg-muted"
+                      aria-label={`Remove one ${item.name}`}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted touch:h-11 touch:w-11"
                     >
-                      <Minus className="h-3 w-3" />
+                      <Minus className="h-4 w-4" />
                     </button>
-                    <span className="w-4 text-center text-xs font-semibold">{item.quantity}</span>
+                    <span className="min-w-6 text-center text-sm font-semibold tabular-nums">
+                      {item.quantity}
+                    </span>
                     <button
                       onClick={() => incrementItem(item.productId)}
-                      className="flex h-6 w-6 items-center justify-center rounded-full bg-brand-600 text-white"
+                      aria-label={`Add one more ${item.name}`}
+                      className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white touch:h-11 touch:w-11"
                     >
-                      <Plus className="h-3 w-3" />
+                      <Plus className="h-4 w-4" />
                     </button>
                   </div>
                   <input
@@ -217,7 +240,7 @@ export function CustomerMenu({
                     placeholder="e.g. no onion"
                     value={item.note ?? ""}
                     onChange={(e) => updateItemNote(item.productId, e.target.value)}
-                    className="mt-2 w-full rounded-md border border-border px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400"
+                    className="mt-2 w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400 touch:min-h-11 touch:text-sm"
                   />
                 </div>
               ))}

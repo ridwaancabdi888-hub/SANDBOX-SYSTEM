@@ -126,7 +126,7 @@ export function ReprintReceiptModal({
           </div>
 
           {unpaid && (
-            <div className="flex items-start gap-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-800">
+            <div className="flex items-start gap-2 rounded-lg bg-warning-bg px-3 py-2 text-xs text-warning">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
               <span>This order has no payment recorded yet, so it prints as UNPAID.</span>
             </div>

@@ -46,8 +46,8 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
               <div
                 className={
                   state.options.variant === "danger"
-                    ? "rounded-full bg-red-100 p-2 text-red-600"
-                    : "rounded-full bg-brand-100 p-2 text-brand-600"
+                    ? "rounded-full bg-danger-bg p-2 text-danger"
+                    : "rounded-full bg-tone-brand-bg p-2 text-tone-brand"
                 }
               >
                 <AlertTriangle className="h-5 w-5" />

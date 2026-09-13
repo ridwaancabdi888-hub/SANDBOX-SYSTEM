@@ -15,7 +15,7 @@ const variantClasses: Record<Variant, string> = {
   primary:
     "bg-brand-600 text-white hover:bg-brand-700 focus-visible:ring-brand-500 shadow-sm",
   secondary:
-    "bg-ink-900 text-white hover:bg-black focus-visible:ring-neutral-500 shadow-sm",
+    "bg-ink-900 text-background hover:opacity-90 focus-visible:ring-brand-400 shadow-sm",
   outline:
     "border border-border bg-card hover:bg-muted text-foreground focus-visible:ring-brand-400",
   ghost: "hover:bg-muted text-foreground focus-visible:ring-brand-400",
@@ -25,8 +25,10 @@ const variantClasses: Record<Variant, string> = {
 };
 
 const sizeClasses: Record<Size, string> = {
-  sm: "h-8 px-3 text-sm gap-1.5",
-  md: "h-10 px-4 text-sm gap-2",
+  // `touch:` bumps the tap area to 44px on coarse pointers only — a mouse
+  // keeps the denser desktop sizing.
+  sm: "h-8 px-3 text-sm gap-1.5 touch:min-h-11 touch:px-4",
+  md: "h-10 px-4 text-sm gap-2 touch:min-h-11",
   lg: "h-12 px-6 text-base gap-2",
   xl: "h-16 px-8 text-lg gap-3",
 };

@@ -65,12 +65,12 @@ export function CategoryModal({
             onChange={(e) => setSortOrder(e.target.value)}
           />
         </div>
-        <label className="flex items-center gap-2 text-sm">
+        <label className="flex items-center gap-2 text-sm touch:min-h-11">
           <input
             type="checkbox"
             checked={active}
             onChange={(e) => setActive(e.target.checked)}
-            className="h-4 w-4 rounded border-border"
+            className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
           />
           Active
         </label>

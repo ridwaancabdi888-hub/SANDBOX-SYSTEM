@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "./button";
 
 export function Spinner({ className }: { className?: string }) {
-  return <Loader2 className={cn("h-5 w-5 animate-spin text-brand-600", className)} />;
+  return <Loader2 className={cn("h-5 w-5 animate-spin text-accent", className)} />;
 }
 
 export function PageLoading({ label = "Loading..." }: { label?: string }) {
@@ -49,12 +49,12 @@ export function ErrorState({
   onRetry?: () => void;
 }) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-red-200 bg-red-50/50 py-16 px-6 text-center">
-      <div className="mb-2 rounded-full bg-red-100 p-3 text-red-600">
+    <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-danger/30 bg-danger-bg/50 py-16 px-6 text-center">
+      <div className="mb-2 rounded-full bg-danger-bg p-3 text-danger">
         <AlertCircle className="h-6 w-6" />
       </div>
-      <h3 className="font-semibold text-red-800">{title}</h3>
-      {description && <p className="max-w-sm text-sm text-red-700/80">{description}</p>}
+      <h3 className="font-semibold text-danger">{title}</h3>
+      {description && <p className="max-w-sm text-sm text-danger/80">{description}</p>}
       {onRetry && (
         <Button variant="outline" size="sm" className="mt-3" onClick={onRetry}>
           <RefreshCw className="h-4 w-4" /> Retry

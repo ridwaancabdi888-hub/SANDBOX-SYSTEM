@@ -27,7 +27,7 @@ export function ReceiptDocument({
   return (
     <div
       className={cn(
-        "print-area mx-auto bg-white p-3 font-mono text-[11px] leading-tight text-black",
+        "print-area mx-auto bg-paper p-3 font-mono text-[11px] leading-tight text-paper-foreground",
         widthClass,
         className
       )}
@@ -55,9 +55,9 @@ export function ReceiptDocument({
           return (
             <div
               key={index}
-              className="my-1 flex flex-col items-center gap-0.5 text-[9px] text-black/60"
+              className="my-1 flex flex-col items-center gap-0.5 text-[9px] text-paper-foreground/60"
             >
-              <div className="flex h-10 w-10 items-center justify-center border border-dashed border-black/40">
+              <div className="flex h-10 w-10 items-center justify-center border border-dashed border-paper-foreground/40">
                 {block.type === "qr" ? "QR" : "|||"}
               </div>
               <span>{block.data}</span>

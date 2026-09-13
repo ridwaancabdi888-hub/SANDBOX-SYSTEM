@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Save, Upload, Trash2, ImageIcon, Loader2 } from "lucide-react";
+import { Save, Upload, Trash2, ImageIcon, Loader2, Palette } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { updateSettings } from "@/lib/services/settings";
 import {
@@ -15,6 +15,7 @@ import {
 } from "@/lib/services/branding";
 import { PrinterManager } from "@/components/printing/printer-manager";
 import { BrandLogo } from "@/components/layout/brand-logo";
+import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -55,8 +56,29 @@ export function SettingsManager({
   }
 
   return (
-    <div className="flex-1 space-y-6 p-4 lg:p-6">
+    <div className="mx-auto w-full max-w-6xl flex-1 space-y-6 p-4 lg:p-6">
       <h1 className="text-2xl font-bold">Settings</h1>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Palette className="h-4 w-4" /> Appearance
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <Label>Theme</Label>
+            <div className="mt-2">
+              <ThemeToggle />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            System follows this device&apos;s light/dark setting. The choice is saved per
+            device, not per account — the counter tablet and your laptop can differ, and it
+            applies the moment you pick it. Every screen has the same toggle in its header.
+          </p>
+        </CardContent>
+      </Card>
 
       <BrandingCard
         settings={settings}
@@ -135,12 +157,12 @@ export function SettingsManager({
               }
             />
           </div>
-          <label className="flex items-center gap-2 self-end pb-2 text-sm">
+          <label className="flex items-center gap-2 self-end pb-2 text-sm touch:min-h-11">
             <input
               type="checkbox"
               checked={settings.allow_negative_stock}
               onChange={(e) => setSettings({ ...settings, allow_negative_stock: e.target.checked })}
-              className="h-4 w-4 rounded border-border"
+              className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
             />
             Allow negative stock (not recommended)
           </label>

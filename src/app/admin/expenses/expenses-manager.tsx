@@ -131,7 +131,7 @@ export function ExpensesManager({
                 <th className="px-3 py-2">Amount</th>
                 <th className="px-3 py-2">Date</th>
                 <th className="px-3 py-2">By</th>
-                <th className="px-3 py-2 text-right">Actions</th>
+                <th className="sticky right-0 z-10 bg-muted px-3 py-2 text-right shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)] sm:static sm:shadow-none">Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -144,9 +144,11 @@ export function ExpensesManager({
                   <td className="px-3 py-2 text-muted-foreground">
                     {e.created_by_profile?.full_name ?? "—"}
                   </td>
-                  <td className="px-3 py-2">
+                  {/* Pinned to the right edge while the table scrolls, so row actions
+                    stay reachable on a phone instead of hiding off-screen. */}
+                  <td className="sticky right-0 z-10 bg-card px-3 py-2 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)] sm:static sm:shadow-none">
                     <div className="flex justify-end">
-                      <Button size="sm" variant="ghost" onClick={() => handleDelete(e)}>
+                      <Button size="sm" variant="ghost" aria-label={`Delete ${e.title}`} onClick={() => handleDelete(e)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>

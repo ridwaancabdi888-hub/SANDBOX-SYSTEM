@@ -40,9 +40,9 @@ export function Modal({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4">
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-[2px]"
+        className="fixed inset-0 bg-overlay backdrop-blur-[2px]"
         onClick={onClose}
         aria-hidden
       />
@@ -50,28 +50,31 @@ export function Modal({
         role="dialog"
         aria-modal="true"
         className={cn(
-          "relative z-10 w-full rounded-xl bg-card shadow-xl max-h-[90vh] overflow-y-auto",
+          "relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-xl bg-card shadow-xl sm:max-h-[90vh]",
           sizeClasses[size]
         )}
       >
         {(title || description) && (
-          <div className="flex items-start justify-between border-b border-border p-4 sm:p-5">
-            <div>
-              {title && <h2 className="text-lg font-semibold">{title}</h2>}
+          <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border p-4 sm:p-5">
+            <div className="min-w-0">
+              {title && <h2 className="text-base font-semibold sm:text-lg">{title}</h2>}
               {description && (
                 <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
               )}
             </div>
             <button
               onClick={onClose}
-              className="rounded-md p-1 text-muted-foreground hover:bg-muted"
+              className="-m-1 flex shrink-0 items-center justify-center rounded-md p-1 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
               aria-label="Close"
             >
               <X className="h-5 w-5" />
             </button>
           </div>
         )}
-        <div className="p-4 sm:p-5">{children}</div>
+        {/* Only the body scrolls, so the title and Close stay put. */}
+        <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-4 scrollbar-thin sm:p-5">
+          {children}
+        </div>
       </div>
     </div>
   );

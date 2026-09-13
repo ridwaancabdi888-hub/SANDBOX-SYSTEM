@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
-import { Toaster } from "sonner";
+import { AppToaster } from "@/components/layout/app-toaster";
+import { ThemeScript } from "@/components/layout/theme-script";
 import "./globals.css";
 
 const inter = Inter({
@@ -15,10 +16,13 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
-    <html lang="en" className={`${inter.variable} h-full antialiased`}>
+    <html lang="en" suppressHydrationWarning className={`${inter.variable} h-full antialiased`}>
+      <head>
+        <ThemeScript />
+      </head>
       <body className="min-h-full flex flex-col">
         {children}
-        <Toaster position="top-right" richColors closeButton />
+        <AppToaster />
       </body>
     </html>
   );
