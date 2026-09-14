@@ -1,7 +1,9 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { AppToaster } from "@/components/layout/app-toaster";
 import { ThemeScript } from "@/components/layout/theme-script";
+import { ServiceWorkerRegister } from "@/components/pwa/service-worker-register";
+import { PWA_THEME_COLOR } from "@/lib/pwa/config";
 import { LocaleProvider, LOCALE_DIR } from "@/lib/i18n";
 import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
@@ -14,6 +16,13 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "SANDBOX Cafeteria",
   description: "SANDBOX Cafeteria Management System",
+  applicationName: "SANDBOX",
+  // iOS ignores the manifest for home-screen apps; these are what it reads.
+  appleWebApp: { capable: true, title: "SANDBOX", statusBarStyle: "default" },
+};
+
+export const viewport: Viewport = {
+  themeColor: PWA_THEME_COLOR,
 };
 
 export default async function RootLayout({ children }: LayoutProps<"/">) {
@@ -35,6 +44,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
         <LocaleProvider locale={locale}>
           {children}
           <AppToaster />
+          <ServiceWorkerRegister />
         </LocaleProvider>
       </body>
     </html>

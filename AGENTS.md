@@ -148,6 +148,35 @@ are never translated.
   on `ConnectionTypeInfo`; the plain `label` stays English for queue entries
   and the sample receipt.
 
+## Installable app (PWA)
+
+SANDBOX installs as an app: `src/app/manifest.ts`, `public/sw.js`,
+`public/offline.html`, and icons in `public/icons/` plus `src/app/apple-icon.png`
+and `src/app/favicon.ico`.
+
+- **The service worker never caches private data.** Every screen is scoped to
+  the signed-in user by RLS, so a cached page could show one person's orders
+  or payments to the next person on the device. `strategyFor` in `sw.js`
+  caches only `/_next/static/` and `/icons/`; page loads are network-only with
+  the static offline page as the fallback; RSC payloads, `/api/*`, non-GET and
+  every cross-origin request (all of Supabase, including Realtime) pass
+  straight through. `pwa.test.ts` runs the real `sw.js` to enforce this —
+  don't add a route to the cache without reading why.
+- Bump `CACHE_VERSION` when changing what is cached; `activate` deletes old
+  caches. `sw.js` is served `no-store` (`next.config.ts`) so fixes reach
+  installed devices, and it only registers in production.
+- The auth middleware skips `sw.js`, `manifest.webmanifest` and `offline.html`.
+- **Install button** (`components/pwa/install-app-button.tsx`, login page
+  only): Chromium fires `beforeinstallprompt` and we call `prompt()`; iOS has
+  no install API, so it shows Share → Add to Home Screen; macOS Safari and
+  Firefox for Android get their menu steps; browsers that cannot install and
+  the installed app itself show nothing. `lib/pwa/install.ts` holds the state.
+- Icons are generated from the cafeteria logo, which lives in Storage and can
+  change. They are static because installed apps need static icons. After a
+  logo change, rerun
+  `node scripts/generate-pwa-icons.mjs <logo.png> [--favicon-crop=left,top,size]`
+  and commit the output.
+
 ## Menu filtering
 
 All three ordering surfaces (cashier, waiter, customer QR) share
@@ -210,10 +239,10 @@ Facts that decide the design; don't re-litigate them:
 - Don't use TypeScript **parameter properties** (`constructor(private x)`) in
   this module: tests run under Node's type-stripping, which rejects them.
 
-Changing any of it? Run `npm test` — 121 tests cover encoding, layout, capability
+Changing any of it? Run `npm test` — 147 tests cover encoding, layout, capability
 gating, logo raster gating, the queue (ordering, dedupe, retry, failure), every
 adapter against mock printers, the menu ALL filter, the responsive guards, the
-locale dictionaries and the user-management guards.
+locale dictionaries, the user-management guards and the PWA caching rules.
 
 ## Checks before calling something done
 

@@ -853,4 +853,14 @@ export const so: Dictionary = {
     validQuantity: "Geli tiro sax ah",
     allFieldsPassword: "Buuxi dhammaan goobaha — furaha sirtu waa inuu ugu yaraan 8 xaraf noqdaa",
   },
+  pwa: {
+    installApp: "Rakib App-ka",
+    installHint: "Ku rakib SANDBOX qalabkan sida app",
+    installed: "SANDBOX waa la rakibay",
+    howToInstall: "Si aad u rakibto SANDBOX",
+    iosStepShare: "Taabo Share",
+    iosStepAdd: "kadibna Add to Home Screen",
+    safariSteps: "Safari-ga, dooro File → Add to Dock.",
+    androidMenuSteps: "Fur menu-ga browser-ka (⋮), kadibna taabo Install.",
+  },
 };

@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/services/settings";
 import { BrandLogo } from "@/components/layout/brand-logo";
 import { getT } from "@/lib/i18n/server";
+import { InstallAppButton } from "@/components/pwa/install-app-button";
 import { LoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
@@ -39,6 +40,11 @@ export default async function LoginPage({
         <Suspense>
           <LoginFormWrapper searchParams={searchParams} />
         </Suspense>
+        {/* Renders nothing until the browser says how (or whether) this
+            device can install the app — see components/pwa. */}
+        <div className="mt-6">
+          <InstallAppButton />
+        </div>
       </div>
     </div>
   );

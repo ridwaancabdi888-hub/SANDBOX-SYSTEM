@@ -847,4 +847,14 @@ export const en = {
     validQuantity: "Enter a valid quantity",
     allFieldsPassword: "Fill every field — the password must be at least 8 characters",
   },
+  pwa: {
+    installApp: "Install App",
+    installHint: "Install SANDBOX as an app on this device",
+    installed: "SANDBOX is installed",
+    howToInstall: "To install SANDBOX",
+    iosStepShare: "Tap Share",
+    iosStepAdd: "then Add to Home Screen",
+    safariSteps: "In Safari, choose File → Add to Dock.",
+    androidMenuSteps: "Open the browser menu (⋮), then tap Install.",
+  },
 } as const;
