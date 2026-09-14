@@ -7,6 +7,7 @@ import { createIngredient, updateIngredient } from "@/lib/services/inventory";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
+import { useT, unitKey } from "@/lib/i18n";
 import { INGREDIENT_UNIT_LABELS } from "@/lib/types/domain";
 import type { Ingredient, IngredientUnit } from "@/lib/types/domain";
 
@@ -30,10 +31,11 @@ export function IngredientModal({
   const [supplier, setSupplier] = useState(ingredient?.supplier ?? "");
   const [active, setActive] = useState(ingredient?.active ?? true);
   const [saving, setSaving] = useState(false);
+  const t = useT();
 
   async function submit() {
     if (!name.trim()) {
-      toast.error("Name is required");
+      toast.error(t("validation.nameRequired"));
       return;
     }
     setSaving(true);
@@ -52,46 +54,46 @@ export function IngredientModal({
       } else {
         await createIngredient(supabase, { ...payload, current_quantity: 0 });
       }
-      toast.success(ingredient ? "Ingredient updated" : "Ingredient created");
+      toast.success(ingredient ? t("inventory.ingredientUpdated") : t("inventory.ingredientCreated"));
       onSaved();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save ingredient");
+      toast.error(err instanceof Error ? err.message : t("menu.saveFailed"));
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={ingredient ? "Edit Ingredient" : "New Ingredient"} size="sm">
+    <Modal open={open} onClose={onClose} title={ingredient ? t("inventory.editIngredient") : t("inventory.newIngredient")} size="sm">
       <div className="space-y-3">
         <div>
-          <Label htmlFor="i-name">Name</Label>
+          <Label htmlFor="i-name">{t("common.name")}</Label>
           <Input id="i-name" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="i-unit">Unit</Label>
+            <Label htmlFor="i-unit">{t("common.unit")}</Label>
             <Select id="i-unit" value={unit} onChange={(e) => setUnit(e.target.value as IngredientUnit)}>
-              {Object.entries(INGREDIENT_UNIT_LABELS).map(([value, label]) => (
+              {(Object.keys(INGREDIENT_UNIT_LABELS) as IngredientUnit[]).map((value) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t(unitKey(value))}
                 </option>
               ))}
             </Select>
           </div>
           <div>
-            <Label htmlFor="i-min">Minimum qty</Label>
+            <Label htmlFor="i-min">{t("inventory.minimumQty")}</Label>
             <Input id="i-min" type="number" step="0.001" value={minQty} onChange={(e) => setMinQty(e.target.value)} />
           </div>
         </div>
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <Label htmlFor="i-cost">Cost per unit</Label>
+            <Label htmlFor="i-cost">{t("inventory.costPerUnit")}</Label>
             <Input id="i-cost" type="number" step="0.01" value={cost} onChange={(e) => setCost(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="i-supplier">Supplier</Label>
+            <Label htmlFor="i-supplier">{t("inventory.supplier")}</Label>
             <Input id="i-supplier" value={supplier} onChange={(e) => setSupplier(e.target.value)} />
           </div>
         </div>
@@ -102,14 +104,14 @@ export function IngredientModal({
             onChange={(e) => setActive(e.target.checked)}
             className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
           />
-          Active
+          {t("common.active")}
         </label>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button loading={saving} onClick={submit}>
-            Save
+            {t("common.save")}
           </Button>
         </div>
       </div>

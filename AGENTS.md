@@ -99,6 +99,47 @@ Light and dark both come from CSS variables in `globals.css` — `:root` and
 - `bg-paper` / `text-paper-foreground` stay light in both themes on purpose:
   that is the receipt, which is printed on white paper.
 
+## Language (i18n)
+
+English and Somali, both LTR. English is the default for any device with no
+preference, and product/category/ingredient names are **business data** — they
+are never translated.
+
+- **Locale is a cookie (`sandbox_lang`), not localStorage.** Theme can live in
+  localStorage because it only toggles a CSS class that a pre-paint script
+  fixes. Language changes rendered *text*, so the server has to know it at
+  render time or every page hydrates against markup in the other language. The
+  root layout reads it with `getLocale()` and seeds `<LocaleProvider>`, so
+  server and client always agree. Do not "fix" this by moving it to
+  localStorage.
+- Server Components use `getT()` (`lib/i18n/server.ts`, `server-only`); client
+  components use `useT()` from `@/lib/i18n`. Both return the same `t(key, vars)`.
+- `en.ts` is the source of truth and `Dictionary = typeof en`. Every other
+  locale is typed as `Dictionary`, so **a missing translation is a compile
+  error**, not a runtime surprise. That is the missing-key guarantee; there is
+  no need for a runtime scan.
+- Interpolate, never concatenate: `t("orders.orderNumber", { number })`. Counts
+  go through `plural("orders.itemCount", n)`, which picks `_one` / `_other`.
+  Somali does not inflect a counted noun, so several of its pairs are
+  identical on purpose.
+- **Never translate a stored value.** `role`, `order_status`, `payment_method`
+  and `ingredient_unit` are database enums and the contract with
+  `advance_order_status` / `record_payment`. Translate the *label* through
+  `roleKey()`, `orderStatusKey()`, `paymentMethodKey()`, `unitKey()`
+  (`lib/i18n/labels.ts`), which map a stored value to a key. Tests assert every
+  enum value has a label in both locales.
+- Switching locale calls `router.refresh()`, not a reload, so an in-progress
+  order or an open modal survives it.
+- `states.tsx` stays hook-free and takes its strings as props — two Server
+  Components render it, and a `useT()` call there would force a client
+  boundary on them.
+- Still English by design: ESC/POS adapter diagnostics, `require-role` throws
+  and the LAN print API. They are developer/technical output, and
+  `lib/printing/` must keep working outside React where there is no locale.
+  Connection-type copy *is* translated via `labelKey`/`blurbKey`/`platformsKey`
+  on `ConnectionTypeInfo`; the plain `label` stays English for queue entries
+  and the sample receipt.
+
 ## Menu filtering
 
 All three ordering surfaces (cashier, waiter, customer QR) share
@@ -161,9 +202,10 @@ Facts that decide the design; don't re-litigate them:
 - Don't use TypeScript **parameter properties** (`constructor(private x)`) in
   this module: tests run under Node's type-stripping, which rejects them.
 
-Changing any of it? Run `npm test` — 85 tests cover encoding, layout, capability
+Changing any of it? Run `npm test` — 110 tests cover encoding, layout, capability
 gating, logo raster gating, the queue (ordering, dedupe, retry, failure), every
-adapter against mock printers, the menu ALL filter and the responsive guards.
+adapter against mock printers, the menu ALL filter, the responsive guards and
+the locale dictionaries.
 
 ## Checks before calling something done
 

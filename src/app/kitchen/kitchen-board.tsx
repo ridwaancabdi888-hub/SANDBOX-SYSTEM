@@ -11,19 +11,28 @@ import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/states";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { cn } from "@/lib/utils";
-import type { OrderWithItems, OrderStatus } from "@/lib/types/domain";
+import { useT, usePlural, orderStatusKey, orderSourceKey } from "@/lib/i18n";
+import type { TranslationKey } from "@/lib/i18n";
+import type { OrderWithItems, OrderStatus, OrderSource } from "@/lib/types/domain";
 import { LocalDateTime } from "@/components/ui/local-time";
 
-const COLUMNS: { status: OrderStatus; title: string; icon: typeof Clock; accent: string }[] = [
-  { status: "NEW", title: "New Orders", icon: Clock, accent: "border-t-blue-500" },
-  { status: "PREPARING", title: "Preparing", icon: ChefHat, accent: "border-t-amber-500" },
-  { status: "READY", title: "Ready for Pickup", icon: PackageCheck, accent: "border-t-green-500" },
+const COLUMNS: {
+  status: OrderStatus;
+  titleKey: TranslationKey;
+  icon: typeof Clock;
+  accent: string;
+}[] = [
+  { status: "NEW", titleKey: "kitchen.newOrders", icon: Clock, accent: "border-t-blue-500" },
+  { status: "PREPARING", titleKey: "kitchen.preparing", icon: ChefHat, accent: "border-t-amber-500" },
+  { status: "READY", titleKey: "kitchen.readyForPickup", icon: PackageCheck, accent: "border-t-green-500" },
 ];
 
 export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[] }) {
   const orders = useRealtimeOrders(initialOrders, ["NEW", "PREPARING", "READY"]);
   const [busyId, setBusyId] = useState<string | null>(null);
   const confirm = useConfirm();
+  const t = useT();
+  const plural = usePlural();
 
   const byStatus = useMemo(() => {
     const map: Record<OrderStatus, OrderWithItems[]> = {
@@ -46,9 +55,14 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
     try {
       const supabase = createClient();
       await advanceOrderStatus(supabase, order.id, next);
-      toast.success(`Order #${order.order_number} moved to ${next}`);
+      toast.success(
+        t("kitchen.statusChanged", {
+          number: order.order_number,
+          status: t(orderStatusKey(next)),
+        })
+      );
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update order");
+      toast.error(err instanceof Error ? err.message : t("kitchen.statusFailed"));
     } finally {
       setBusyId(null);
     }
@@ -56,9 +70,9 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
 
   async function handleCancel(order: OrderWithItems) {
     const ok = await confirm({
-      title: `Cancel order #${order.order_number}?`,
-      description: "This will restore any deducted stock. This cannot be undone.",
-      confirmLabel: "Cancel order",
+      title: t("orders.confirmCancelTitle"),
+      description: t("kitchen.confirmCancelBody"),
+      confirmLabel: t("kitchen.cancelOrder"),
       variant: "danger",
     });
     if (!ok) return;
@@ -66,9 +80,9 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
     try {
       const supabase = createClient();
       await advanceOrderStatus(supabase, order.id, "CANCELLED", "Cancelled by kitchen");
-      toast.success(`Order #${order.order_number} cancelled`);
+      toast.success(t("orders.cancelled", { number: order.order_number }));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to cancel order");
+      toast.error(err instanceof Error ? err.message : t("orders.cancelFailed"));
     } finally {
       setBusyId(null);
     }
@@ -77,9 +91,9 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
   return (
     <div className="flex-1 p-3 sm:p-4 lg:p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Kitchen Display</h1>
+        <h1 className="text-2xl font-bold">{t("kitchen.title")}</h1>
         <span className="text-sm text-muted-foreground">
-          {orders.length} active order{orders.length === 1 ? "" : "s"}
+          {plural("kitchen.activeOrders", orders.length)}
         </span>
       </div>
 
@@ -88,7 +102,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
           <div key={col.status} className="flex flex-col gap-3">
             <div className="flex items-center gap-2 px-1">
               <col.icon className="h-5 w-5 text-muted-foreground" />
-              <h2 className="font-semibold">{col.title}</h2>
+              <h2 className="font-semibold">{t(col.titleKey)}</h2>
               <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium">
                 {byStatus[col.status].length}
               </span>
@@ -97,7 +111,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
             <div className="flex flex-col gap-3">
               {byStatus[col.status].length === 0 && (
                 <div className="rounded-xl border border-dashed border-border py-10 text-center text-sm text-muted-foreground">
-                  No orders
+                  {t("kitchen.noOrders")}
                 </div>
               )}
               {byStatus[col.status].map((order) => (
@@ -109,7 +123,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
                     <div>
                       <div className="text-lg font-bold">#{order.order_number}</div>
                       <div className="text-sm font-medium text-muted-foreground">
-                        {order.location?.name ?? order.source.replace("_", " ")}
+                        {order.location?.name ?? t(orderSourceKey(order.source as OrderSource))}
                       </div>
                     </div>
                     <div className="text-right text-xs text-muted-foreground">
@@ -144,7 +158,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
 
                   {order.customer_note && (
                     <div className="mt-2 rounded-md bg-warning-bg px-2 py-1 text-xs font-medium text-warning">
-                      NOTE: {order.customer_note}
+                      {t("kitchen.note")}: {order.customer_note}
                     </div>
                   )}
 
@@ -156,7 +170,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
                         loading={busyId === order.id}
                         onClick={() => handleAdvance(order, "PREPARING")}
                       >
-                        Start Preparing
+                        {t("kitchen.startPreparing")}
                       </Button>
                     )}
                     {col.status === "PREPARING" && (
@@ -167,12 +181,12 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
                         loading={busyId === order.id}
                         onClick={() => handleAdvance(order, "READY")}
                       >
-                        Mark Ready
+                        {t("kitchen.markReady")}
                       </Button>
                     )}
                     {col.status === "READY" && (
                       <div className="flex-1 rounded-lg bg-success-bg py-2 text-center text-sm font-medium text-success">
-                        Waiting for waiter…
+                        {t("kitchen.waitingForWaiter")}
                       </div>
                     )}
                     {col.status !== "READY" && (
@@ -181,7 +195,7 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
                         variant="outline"
                         onClick={() => handleCancel(order)}
                         disabled={busyId === order.id}
-                        aria-label="Cancel order"
+                        aria-label={t("kitchen.cancelOrder")}
                       >
                         <Ban className="h-4 w-4" />
                       </Button>
@@ -196,8 +210,8 @@ export function KitchenBoard({ initialOrders }: { initialOrders: OrderWithItems[
 
       {orders.length === 0 && (
         <EmptyState
-          title="No active orders"
-          description="New orders from QR customers, waiters, or the cashier will appear here instantly."
+          title={t("kitchen.allClear")}
+          description={t("kitchen.allClearHint")}
         />
       )}
     </div>

@@ -4,6 +4,7 @@ import { useState, useCallback, createContext, useContext, ReactNode } from "rea
 import { Modal } from "./modal";
 import { Button } from "./button";
 import { AlertTriangle } from "lucide-react";
+import { useT } from "@/lib/i18n";
 
 interface ConfirmOptions {
   title: string;
@@ -20,6 +21,7 @@ interface ConfirmContextValue {
 const ConfirmContext = createContext<ConfirmContextValue | null>(null);
 
 export function ConfirmProvider({ children }: { children: ReactNode }) {
+  const t = useT();
   const [state, setState] = useState<{
     options: ConfirmOptions;
     resolve: (value: boolean) => void;
@@ -63,13 +65,13 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
             </div>
             <div className="mt-5 flex justify-end gap-2">
               <Button variant="outline" onClick={() => handle(false)}>
-                {state.options.cancelLabel ?? "Cancel"}
+                {state.options.cancelLabel ?? t("common.cancel")}
               </Button>
               <Button
                 variant={state.options.variant === "danger" ? "danger" : "primary"}
                 onClick={() => handle(true)}
               >
-                {state.options.confirmLabel ?? "Confirm"}
+                {state.options.confirmLabel ?? t("common.confirm")}
               </Button>
             </div>
           </div>

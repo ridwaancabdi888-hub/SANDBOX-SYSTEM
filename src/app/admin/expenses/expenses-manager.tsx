@@ -13,6 +13,7 @@ import { EmptyState } from "@/components/ui/states";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { downloadCsv } from "@/lib/utils/csv";
 import { formatCurrency } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 interface ExpenseRow {
   id: string;
@@ -34,6 +35,7 @@ export function ExpensesManager({
 }) {
   const router = useRouter();
   const confirm = useConfirm();
+  const t = useT();
   const [modalOpen, setModalOpen] = useState(false);
   const [title, setTitle] = useState("");
   const [amount, setAmount] = useState("");
@@ -50,7 +52,7 @@ export function ExpensesManager({
 
   async function submit() {
     if (!title.trim() || !amount) {
-      toast.error("Title and amount are required");
+      toast.error(t("validation.titleAndAmountRequired"));
       return;
     }
     setSaving(true);
@@ -63,14 +65,14 @@ export function ExpensesManager({
         description: description.trim() || null,
         expense_date: date,
       });
-      toast.success("Expense recorded");
+      toast.success(t("expenses.recorded"));
       setTitle("");
       setAmount("");
       setDescription("");
       setModalOpen(false);
       refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to record expense");
+      toast.error(err instanceof Error ? err.message : t("expenses.recordFailed"));
     } finally {
       setSaving(false);
     }
@@ -78,13 +80,13 @@ export function ExpensesManager({
 
   async function handleDelete(expense: ExpenseRow) {
     const ok = await confirm({
-      title: `Delete "${expense.title}"?`,
+      title: t("menu.confirmDeleteProduct", { name: expense.title }),
       variant: "danger",
     });
     if (!ok) return;
     const supabase = createClient();
     await deleteExpense(supabase, expense.id);
-    toast.success("Expense deleted");
+    toast.success(t("expenses.deleted"));
     refresh();
   }
 
@@ -104,34 +106,41 @@ export function ExpensesManager({
   return (
     <div className="flex-1 p-4 lg:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Expenses</h1>
+        <h1 className="text-2xl font-bold">{t("expenses.title")}</h1>
         <div className="flex gap-2">
           <Button variant="outline" onClick={exportCsv} disabled={initialExpenses.length === 0}>
-            <Download className="h-4 w-4" /> Export CSV
+            <Download className="h-4 w-4" /> {t("reports.exportCsv")}
           </Button>
           <Button onClick={() => setModalOpen(true)}>
-            <Plus className="h-4 w-4" /> New Expense
+            <Plus className="h-4 w-4" /> {t("expenses.newExpense")}
           </Button>
         </div>
       </div>
 
       <p className="mb-3 text-sm text-muted-foreground">
-        {initialExpenses.length} expenses · Total {formatCurrency(total, currency)}
+        {t("expenses.summary", {
+          count: initialExpenses.length,
+          total: formatCurrency(total, currency),
+        })}
       </p>
 
       {initialExpenses.length === 0 ? (
-        <EmptyState icon={<Receipt className="h-6 w-6" />} title="No expenses recorded yet" />
+        <EmptyState
+          icon={<Receipt className="h-6 w-6" />}
+          title={t("expenses.empty")}
+          description={t("expenses.emptyHint")}
+        />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-sm">
             <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="px-3 py-2">Title</th>
-                <th className="px-3 py-2">Category</th>
-                <th className="px-3 py-2">Amount</th>
-                <th className="px-3 py-2">Date</th>
-                <th className="px-3 py-2">By</th>
-                <th className="sticky right-0 z-10 bg-muted px-3 py-2 text-right shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)] sm:static sm:shadow-none">Actions</th>
+                <th className="px-3 py-2">{t("common.title")}</th>
+                <th className="px-3 py-2">{t("common.category")}</th>
+                <th className="px-3 py-2">{t("common.amount")}</th>
+                <th className="px-3 py-2">{t("common.date")}</th>
+                <th className="px-3 py-2">{t("expenses.by")}</th>
+                <th className="sticky right-0 z-10 bg-muted px-3 py-2 text-right shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)] sm:static sm:shadow-none">{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -148,7 +157,7 @@ export function ExpensesManager({
                     stay reachable on a phone instead of hiding off-screen. */}
                   <td className="sticky right-0 z-10 bg-card px-3 py-2 shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)] sm:static sm:shadow-none">
                     <div className="flex justify-end">
-                      <Button size="sm" variant="ghost" aria-label={`Delete ${e.title}`} onClick={() => handleDelete(e)}>
+                      <Button size="sm" variant="ghost" aria-label={t("expenses.deleteLabel", { title: e.title })} onClick={() => handleDelete(e)}>
                         <Trash2 className="h-3.5 w-3.5" />
                       </Button>
                     </div>
@@ -160,15 +169,15 @@ export function ExpensesManager({
         </div>
       )}
 
-      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title="New Expense" size="sm">
+      <Modal open={modalOpen} onClose={() => setModalOpen(false)} title={t("expenses.newExpense")} size="sm">
         <div className="space-y-3">
           <div>
-            <Label htmlFor="ex-title">Title</Label>
+            <Label htmlFor="ex-title">{t("common.title")}</Label>
             <Input id="ex-title" value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="ex-amount">Amount</Label>
+              <Label htmlFor="ex-amount">{t("common.amount")}</Label>
               <Input
                 id="ex-amount"
                 type="number"
@@ -178,7 +187,7 @@ export function ExpensesManager({
               />
             </div>
             <div>
-              <Label htmlFor="ex-category">Category</Label>
+              <Label htmlFor="ex-category">{t("common.category")}</Label>
               <Select id="ex-category" value={category} onChange={(e) => setCategory(e.target.value)}>
                 {EXPENSE_CATEGORIES.map((c) => (
                   <option key={c} value={c}>
@@ -189,19 +198,19 @@ export function ExpensesManager({
             </div>
           </div>
           <div>
-            <Label htmlFor="ex-date">Date</Label>
+            <Label htmlFor="ex-date">{t("common.date")}</Label>
             <Input id="ex-date" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="ex-desc">Description</Label>
+            <Label htmlFor="ex-desc">{t("common.description")}</Label>
             <Textarea id="ex-desc" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => setModalOpen(false)}>
-              Cancel
+              {t("common.cancel")}
             </Button>
             <Button loading={saving} onClick={submit}>
-              Save
+              {t("common.save")}
             </Button>
           </div>
         </div>

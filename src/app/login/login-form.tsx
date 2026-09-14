@@ -6,6 +6,7 @@ import { signInAction, type AuthFormState } from "@/lib/actions/auth";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
+import { useT } from "@/lib/i18n";
 
 const initialState: AuthFormState = {};
 
@@ -17,6 +18,7 @@ export function LoginForm({
   inactiveError?: boolean;
 }) {
   const [state, formAction, pending] = useActionState(signInAction, initialState);
+  const t = useT();
 
   return (
     <Card>
@@ -26,12 +28,12 @@ export function LoginForm({
 
           {(state.error || inactiveError) && (
             <div className="rounded-lg bg-danger-bg px-3 py-2 text-sm text-danger">
-              {state.error ?? "This account has been deactivated. Contact your administrator."}
+              {state.error ?? t("auth.accountInactive")}
             </div>
           )}
 
           <div>
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t("auth.email")}</Label>
             <div className="relative">
               <Mail className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -41,13 +43,13 @@ export function LoginForm({
                 autoComplete="username"
                 required
                 className="pl-9"
-                placeholder="you@sandbox.com"
+                placeholder={t("auth.emailPlaceholder")}
               />
             </div>
           </div>
 
           <div>
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t("auth.password")}</Label>
             <div className="relative">
               <Lock className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -64,7 +66,7 @@ export function LoginForm({
 
           <Button type="submit" className="w-full" size="lg" loading={pending}>
             <LogIn className="h-4 w-4" />
-            Sign in
+            {t("auth.signIn")}
           </Button>
         </form>
       </CardContent>

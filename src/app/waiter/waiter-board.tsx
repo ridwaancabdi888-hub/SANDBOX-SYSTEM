@@ -9,17 +9,19 @@ import { advanceOrderStatus } from "@/lib/services/orders";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/states";
-import type { OrderWithItems } from "@/lib/types/domain";
+import { useT, useI18n, orderSourceKey } from "@/lib/i18n";
+import type { OrderWithItems, OrderSource } from "@/lib/types/domain";
 import { LocalDateTime } from "@/components/ui/local-time";
 
 export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[] }) {
+  const { t } = useI18n();
   const orders = useRealtimeOrders(
     initialOrders,
     ["NEW", "PREPARING", "READY", "SERVED"],
     (event) => {
       if (event.type === "update" && event.order.status === "READY") {
-        toast(`🔔 Order #${event.order.order_number} is ready!`, {
-          description: event.order.location?.name ?? "Ready for pickup",
+        toast(t("waiter.orderReadyToast", { number: event.order.order_number }), {
+          description: event.order.location?.name ?? t("waiter.readyForPickup"),
         });
       }
     }
@@ -54,9 +56,9 @@ export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[]
     try {
       const supabase = createClient();
       await advanceOrderStatus(supabase, order.id, "SERVED");
-      toast.success(`Order #${order.order_number} marked as served`);
+      toast.success(t("waiter.served", { number: order.order_number }));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update order");
+      toast.error(err instanceof Error ? err.message : t("waiter.serveFailed"));
     } finally {
       setBusyId(null);
     }
@@ -64,13 +66,13 @@ export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[]
 
   return (
     <div className="flex-1 p-4 lg:p-6">
-      <h1 className="mb-4 text-2xl font-bold">Waiter Dashboard</h1>
+      <h1 className="mb-4 text-2xl font-bold">{t("waiter.title")}</h1>
 
       <section className="mb-6">
-        <SectionHeader icon={Bell} title="Ready for Pickup" count={ready.length} accent="text-success" />
+        <SectionHeader icon={Bell} title={t("waiter.readyForPickup")} count={ready.length} accent="text-success" />
         {ready.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
-            Nothing ready yet
+            {t("waiter.nothingReady")}
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -84,7 +86,7 @@ export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[]
                   loading={busyId === order.id}
                   onClick={() => markServed(order)}
                 >
-                  <CheckCircle2 className="h-5 w-5" /> Mark Served
+                  <CheckCircle2 className="h-5 w-5" /> {t("waiter.markServed")}
                 </Button>
               </Card>
             ))}
@@ -93,10 +95,10 @@ export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[]
       </section>
 
       <section className="mb-6">
-        <SectionHeader icon={ChefHat} title="In the Kitchen" count={inProgress.length} accent="text-warning" />
+        <SectionHeader icon={ChefHat} title={t("waiter.inTheKitchen")} count={inProgress.length} accent="text-warning" />
         {inProgress.length === 0 ? (
           <p className="rounded-xl border border-dashed border-border py-6 text-center text-sm text-muted-foreground">
-            No orders in progress
+            {t("waiter.nothingInProgress")}
           </p>
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -104,7 +106,7 @@ export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[]
               <Card key={order.id} className="p-4">
                 <OrderSummary order={order} />
                 <div className="mt-3 rounded-lg bg-muted py-2 text-center text-xs font-medium text-muted-foreground">
-                  {order.status === "NEW" ? "Waiting for kitchen" : "Being prepared"}
+                  {order.status === "NEW" ? t("waiter.waitingForKitchen") : t("waiter.beingPrepared")}
                 </div>
               </Card>
             ))}
@@ -113,9 +115,9 @@ export function WaiterBoard({ initialOrders }: { initialOrders: OrderWithItems[]
       </section>
 
       <section>
-        <SectionHeader icon={Clock} title="Recently Served" count={served.length} accent="text-muted-foreground" />
+        <SectionHeader icon={Clock} title={t("waiter.recentlyServed")} count={served.length} accent="text-muted-foreground" />
         {served.length === 0 ? (
-          <EmptyState title="No served orders yet" />
+          <EmptyState title={t("waiter.nothingServed")} />
         ) : (
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {served.map((order) => (
@@ -151,13 +153,14 @@ function SectionHeader({
 }
 
 function OrderSummary({ order }: { order: OrderWithItems }) {
+  const t = useT();
   return (
     <div>
       <div className="flex items-start justify-between">
         <div>
           <div className="text-lg font-bold">#{order.order_number}</div>
           <div className="text-sm font-medium text-muted-foreground">
-            {order.location?.name ?? order.source.replace("_", " ")}
+            {order.location?.name ?? t(orderSourceKey(order.source as OrderSource))}
           </div>
         </div>
         <span className="text-xs text-muted-foreground"><LocalDateTime value={order.created_at} relative /></span>
@@ -171,7 +174,7 @@ function OrderSummary({ order }: { order: OrderWithItems }) {
       </ul>
       {order.customer_note && (
         <div className="mt-2 rounded-md bg-warning-bg px-2 py-1 text-xs font-medium text-warning">
-          NOTE: {order.customer_note}
+          {t("kitchen.note")}: {order.customer_note}
         </div>
       )}
     </div>

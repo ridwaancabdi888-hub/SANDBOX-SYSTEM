@@ -14,6 +14,7 @@ import {
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { useT } from "@/lib/i18n";
 import type { Category, Ingredient, Product } from "@/lib/types/domain";
 
 interface RecipeLine {
@@ -48,6 +49,7 @@ export function ProductModal({
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [recipe, setRecipe] = useState<RecipeLine[]>([]);
   const [saving, setSaving] = useState(false);
+  const t = useT();
 
   // The existing recipe still has to be fetched — that's a genuine external
   // read, not prop syncing.
@@ -78,7 +80,7 @@ export function ProductModal({
 
   async function submit() {
     if (!name.trim() || !price) {
-      toast.error("Name and price are required");
+      toast.error(t("validation.nameAndPriceRequired"));
       return;
     }
     setSaving(true);
@@ -110,26 +112,26 @@ export function ProductModal({
         validRecipe.map((r) => ({ ingredient_id: r.ingredientId, quantity: Number(r.quantity) }))
       );
 
-      toast.success(product ? "Product updated" : "Product created");
+      toast.success(product ? t("menu.productUpdated") : t("menu.productCreated"));
       onSaved();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save product");
+      toast.error(err instanceof Error ? err.message : t("menu.saveFailed"));
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={product ? "Edit Product" : "New Product"} size="lg">
+    <Modal open={open} onClose={onClose} title={product ? t("menu.editProduct") : t("menu.newProduct")} size="lg">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div className="space-y-3">
           <div>
-            <Label htmlFor="p-name">Name</Label>
+            <Label htmlFor="p-name">{t("common.name")}</Label>
             <Input id="p-name" value={name} onChange={(e) => setName(e.target.value)} />
           </div>
           <div>
-            <Label htmlFor="p-category">Category</Label>
+            <Label htmlFor="p-category">{t("common.category")}</Label>
             <Select id="p-category" value={categoryId} onChange={(e) => setCategoryId(e.target.value)}>
               {categories.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -139,12 +141,12 @@ export function ProductModal({
             </Select>
           </div>
           <div>
-            <Label htmlFor="p-desc">Description</Label>
+            <Label htmlFor="p-desc">{t("common.description")}</Label>
             <Textarea id="p-desc" rows={2} value={description} onChange={(e) => setDescription(e.target.value)} />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label htmlFor="p-price">Price</Label>
+              <Label htmlFor="p-price">{t("common.price")}</Label>
               <Input
                 id="p-price"
                 type="number"
@@ -155,7 +157,7 @@ export function ProductModal({
               />
             </div>
             <div>
-              <Label htmlFor="p-sku">SKU</Label>
+              <Label htmlFor="p-sku">{t("menu.sku")}</Label>
               <Input id="p-sku" value={sku} onChange={(e) => setSku(e.target.value)} />
             </div>
           </div>
@@ -166,10 +168,10 @@ export function ProductModal({
               onChange={(e) => setAvailable(e.target.checked)}
               className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
             />
-            Available for ordering
+            {t("menu.availableForOrdering")}
           </label>
           <div>
-            <Label>Image</Label>
+            <Label>{t("common.image")}</Label>
             <div className="flex items-center gap-3">
               <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-lg bg-muted text-2xl">
                 {imageFile ? (
@@ -184,7 +186,7 @@ export function ProductModal({
               </div>
               <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-border px-3 py-1.5 text-sm hover:bg-muted">
                 <Upload className="h-4 w-4" />
-                Upload
+                {t("common.upload")}
                 <input
                   type="file"
                   accept="image/*"
@@ -198,15 +200,15 @@ export function ProductModal({
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-            <Label className="mb-0">Recipe (ingredients)</Label>
+            <Label className="mb-0">{t("menu.recipeIngredients")}</Label>
             <Button variant="outline" size="sm" onClick={addRecipeLine}>
-              <Plus className="h-3.5 w-3.5" /> Add
+              <Plus className="h-3.5 w-3.5" /> {t("common.add")}
             </Button>
           </div>
           <div className="space-y-2">
             {recipe.length === 0 && (
               <p className="text-xs text-muted-foreground">
-                No recipe set. Stock won&apos;t be deducted automatically for this product.
+                {t("menu.noRecipe")}
               </p>
             )}
             {recipe.map((line, idx) => (
@@ -226,7 +228,7 @@ export function ProductModal({
                   type="number"
                   step="0.001"
                   min={0}
-                  placeholder="Qty"
+                  placeholder={t("common.qty")}
                   className="w-24"
                   value={line.quantity}
                   onChange={(e) => updateRecipeLine(idx, { quantity: e.target.value })}
@@ -245,10 +247,10 @@ export function ProductModal({
 
       <div className="mt-5 flex justify-end gap-2 border-t border-border pt-4">
         <Button variant="outline" onClick={onClose}>
-          Cancel
+          {t("common.cancel")}
         </Button>
         <Button loading={saving} onClick={submit}>
-          Save Product
+          {t("menu.saveProduct")}
         </Button>
       </div>
     </Modal>

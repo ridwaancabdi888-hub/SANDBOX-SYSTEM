@@ -8,7 +8,13 @@ import { useRealtimeOrders } from "@/lib/hooks/use-realtime-orders";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select } from "@/components/ui/input";
 import { formatCurrency, cn } from "@/lib/utils";
-import { ORDER_STATUS_LABELS, type OrderWithItems, type Ingredient } from "@/lib/types/domain";
+import { useT, usePlural, orderStatusKey, paymentMethodKey } from "@/lib/i18n";
+import type {
+  OrderWithItems,
+  Ingredient,
+  OrderStatus,
+  PaymentMethod,
+} from "@/lib/types/domain";
 
 /** Most recent active orders shown inline; the rest live on the Orders page. */
 const ACTIVE_ORDER_LIMIT = 8;
@@ -67,6 +73,8 @@ export function AdminDashboard({
   const [topProducts, setTopProducts] = useState(initialTopProducts);
   const [loading, setLoading] = useState(false);
   const liveOrders = useRealtimeOrders(activeOrders, ["NEW", "PREPARING", "READY", "SERVED"]);
+  const t = useT();
+  const plural = usePlural();
 
   const counts = useMemo(
     () => ({
@@ -105,30 +113,30 @@ export function AdminDashboard({
   return (
     <div className="flex-1 space-y-6 p-4 lg:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Dashboard</h1>
+        <h1 className="text-2xl font-bold">{t("dashboard.title")}</h1>
         <Select
           className="w-auto"
           value={preset}
           onChange={(e) => handlePresetChange(e.target.value)}
           disabled={loading}
         >
-          <option value="today">Today</option>
-          <option value="yesterday">Yesterday</option>
-          <option value="week">This week</option>
-          <option value="month">This month</option>
+          <option value="today">{t("common.today")}</option>
+          <option value="yesterday">{t("dashboard.yesterday")}</option>
+          <option value="week">{t("reports.thisWeek")}</option>
+          <option value="month">{t("reports.thisMonth")}</option>
         </Select>
       </div>
 
       <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-4 xl:grid-cols-7">
-        <StatCard icon={DollarSign} label="Sales" value={formatCurrency(report.totalSales, currency)} />
-        <StatCard icon={ClipboardList} label="Orders" value={report.totalOrders} />
-        <StatCard icon={ClipboardList} label="Pending" value={counts.new} accent="text-info" />
-        <StatCard icon={ChefHat} label="Preparing" value={counts.preparing} accent="text-warning" />
-        <StatCard icon={Bell} label="Ready" value={counts.ready} accent="text-success" />
-        <StatCard icon={CheckCircle2} label="Completed" value={completedToday} accent="text-success" />
+        <StatCard icon={DollarSign} label={t("dashboard.sales")} value={formatCurrency(report.totalSales, currency)} />
+        <StatCard icon={ClipboardList} label={t("dashboard.orders")} value={report.totalOrders} />
+        <StatCard icon={ClipboardList} label={t("dashboard.pending")} value={counts.new} accent="text-info" />
+        <StatCard icon={ChefHat} label={t("kitchen.preparing")} value={counts.preparing} accent="text-warning" />
+        <StatCard icon={Bell} label={t("kitchen.readyForPickup")} value={counts.ready} accent="text-success" />
+        <StatCard icon={CheckCircle2} label={t("dashboard.completed")} value={completedToday} accent="text-success" />
         <StatCard
           icon={AlertTriangle}
-          label="Low Stock"
+          label={t("dashboard.lowStock")}
           value={lowStock.length}
           accent={lowStock.length > 0 ? "text-danger" : undefined}
         />
@@ -140,7 +148,7 @@ export function AdminDashboard({
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Top Products</CardTitle>
+            <CardTitle>{t("dashboard.topProducts")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
@@ -151,43 +159,42 @@ export function AdminDashboard({
                 sub: formatCurrency(p.revenue, currency),
                 weight: p.quantity,
               }))}
-              empty="No items sold in this period"
+              empty={t("dashboard.noItemsSold")}
             />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle>Orders by Status</CardTitle>
+            <CardTitle>{t("dashboard.ordersByStatus")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
               rows={report.byStatus.map((s) => ({
                 key: s.status,
-                label:
-                  ORDER_STATUS_LABELS[s.status as keyof typeof ORDER_STATUS_LABELS] ?? s.status,
+                label: t(orderStatusKey(s.status as OrderStatus)),
                 value: `${s.count}`,
                 weight: s.count,
               }))}
-              empty="No orders in this period"
+              empty={t("dashboard.noOrdersInPeriod")}
             />
           </CardContent>
         </Card>
 
         <Card className="md:col-span-2 xl:col-span-1">
           <CardHeader>
-            <CardTitle>Payment Methods</CardTitle>
+            <CardTitle>{t("dashboard.paymentMethods")}</CardTitle>
           </CardHeader>
           <CardContent>
             <BreakdownList
               rows={report.byPaymentMethod.map((m) => ({
                 key: m.method,
-                label: m.method,
+                label: t(paymentMethodKey(m.method as PaymentMethod)),
                 value: formatCurrency(m.total, currency),
-                sub: `${m.count} payment${m.count === 1 ? "" : "s"}`,
+                sub: plural("dashboard.paymentCount", m.count),
                 weight: m.total,
               }))}
-              empty="No payments in this period"
+              empty={t("dashboard.noPaymentsInPeriod")}
             />
           </CardContent>
         </Card>
@@ -198,23 +205,23 @@ export function AdminDashboard({
           counters above, so this costs no extra query. */}
       <Card>
         <CardHeader>
-          <CardTitle>Active Orders</CardTitle>
+          <CardTitle>{t("dashboard.activeOrders")}</CardTitle>
         </CardHeader>
         <CardContent>
           {activeList.length === 0 ? (
             <p className="py-6 text-center text-sm text-muted-foreground">
-              Nothing in progress — every order is settled.
+              {t("dashboard.nothingInProgress")}
             </p>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-xs uppercase text-muted-foreground">
-                    <th className="pb-2 pr-3 font-medium">Order</th>
-                    <th className="pb-2 pr-3 font-medium">Location</th>
-                    <th className="hidden pb-2 pr-3 font-medium sm:table-cell">Items</th>
-                    <th className="pb-2 pr-3 font-medium">Status</th>
-                    <th className="pb-2 text-right font-medium">Total</th>
+                    <th className="pb-2 pr-3 font-medium">{t("nav.orders")}</th>
+                    <th className="pb-2 pr-3 font-medium">{t("common.location")}</th>
+                    <th className="hidden pb-2 pr-3 font-medium sm:table-cell">{t("orders.items")}</th>
+                    <th className="pb-2 pr-3 font-medium">{t("common.status")}</th>
+                    <th className="pb-2 text-right font-medium">{t("common.total")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -234,7 +241,7 @@ export function AdminDashboard({
                             STATUS_STYLES[order.status] ?? "bg-muted text-muted-foreground"
                           )}
                         >
-                          {ORDER_STATUS_LABELS[order.status]}
+                          {t(orderStatusKey(order.status))}
                         </span>
                       </td>
                       <td className="py-2 text-right tabular-nums font-medium">
@@ -246,8 +253,10 @@ export function AdminDashboard({
               </table>
               {liveOrders.length > activeList.length && (
                 <p className="pt-3 text-center text-xs text-muted-foreground">
-                  Showing {activeList.length} of {liveOrders.length} active orders — see Orders for
-                  the rest.
+                  {t("dashboard.showingOf", {
+                    shown: activeList.length,
+                    total: liveOrders.length,
+                  })}
                 </p>
               )}
             </div>
@@ -259,7 +268,7 @@ export function AdminDashboard({
         <Card className="border-danger/30 bg-danger-bg/50">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-danger">
-              <AlertTriangle className="h-4 w-4" /> Low Stock Alert
+              <AlertTriangle className="h-4 w-4" /> {t("dashboard.lowStockAlert")}
             </CardTitle>
           </CardHeader>
           <CardContent>

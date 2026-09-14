@@ -11,6 +11,7 @@ import { Textarea, Select, Label } from "@/components/ui/input";
 import { Modal } from "@/components/ui/modal";
 import { formatCurrency, cn } from "@/lib/utils";
 import { ALL_CATEGORY, buildMenuFilter } from "@/lib/menu-filter";
+import { useT, usePlural } from "@/lib/i18n";
 import type { Category, Product, Location } from "@/lib/types/domain";
 
 interface CartLine {
@@ -40,6 +41,8 @@ export function OrderBuilder({
   const [note, setNote] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const t = useT();
+  const plural = usePlural();
 
   const total = useMemo(
     () => cart.reduce((sum, l) => sum + l.product.price * l.quantity, 0),
@@ -77,7 +80,7 @@ export function OrderBuilder({
 
   async function submit() {
     if (cart.length === 0) {
-      toast.error("Add at least one item to the order");
+      toast.error(t("newOrder.emptyCartHint"));
       return;
     }
     setSubmitting(true);
@@ -93,13 +96,13 @@ export function OrderBuilder({
         note,
         source,
       });
-      toast.success(`Order #${result.order_number} created`);
+      toast.success(t("newOrder.orderPlaced", { number: result.order_number }));
       setCart([]);
       setNote("");
       setCartOpen(false);
       onOrderCreated?.(result);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create order");
+      toast.error(err instanceof Error ? err.message : t("newOrder.orderFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -115,7 +118,7 @@ export function OrderBuilder({
     <div className="flex h-full flex-col">
       <div className="flex-1 space-y-3 overflow-y-auto scrollbar-thin">
         {cart.length === 0 ? (
-          <p className="py-8 text-center text-sm text-muted-foreground">Cart is empty</p>
+          <p className="py-8 text-center text-sm text-muted-foreground">{t("newOrder.emptyCart")}</p>
         ) : (
           cart.map((line) => (
             <div key={line.product.id} className="rounded-lg border border-border p-3">
@@ -128,7 +131,7 @@ export function OrderBuilder({
                 </div>
                 <button
                   onClick={() => removeLine(line.product.id)}
-                  aria-label="Remove item"
+                  aria-label={t("common.remove")}
                   className="-m-2 flex items-center justify-center p-2 text-muted-foreground hover:text-danger touch:min-h-11 touch:min-w-11"
                 >
                   <Trash2 className="h-4 w-4" />
@@ -138,6 +141,7 @@ export function OrderBuilder({
                 <div className="flex items-center gap-2">
                   <button
                     onClick={() => updateQty(line.product.id, -1)}
+                    aria-label={t("newOrder.removeOne", { name: line.product.name })}
                     className="flex h-9 w-9 items-center justify-center rounded-md border border-border hover:bg-muted touch:h-11 touch:w-11"
                   >
                     <Minus className="h-3.5 w-3.5" />
@@ -145,6 +149,7 @@ export function OrderBuilder({
                   <span className="w-6 text-center text-sm font-medium">{line.quantity}</span>
                   <button
                     onClick={() => updateQty(line.product.id, 1)}
+                    aria-label={t("newOrder.addOne", { name: line.product.name })}
                     className="flex h-9 w-9 items-center justify-center rounded-md border border-border hover:bg-muted touch:h-11 touch:w-11"
                   >
                     <Plus className="h-3.5 w-3.5" />
@@ -156,7 +161,7 @@ export function OrderBuilder({
               </div>
               <input
                 type="text"
-                placeholder="Item note (e.g. no onion)"
+                placeholder={t("newOrder.itemNotePlaceholder")}
                 value={line.note}
                 onChange={(e) => updateNote(line.product.id, e.target.value)}
                 className="mt-2 w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400 touch:min-h-11 touch:text-sm"
@@ -169,9 +174,11 @@ export function OrderBuilder({
       <div className="space-y-3 border-t border-border pt-3">
         {locations.length > 0 && (
           <div>
-            <Label htmlFor="location">Location (optional)</Label>
+            <Label htmlFor="location">
+              {t("common.location")} ({t("common.optional").toLowerCase()})
+            </Label>
             <Select id="location" value={locationId} onChange={(e) => setLocationId(e.target.value)}>
-              <option value="">No location / counter</option>
+              <option value="">{t("newOrder.noLocation")}</option>
               {locations.map((loc) => (
                 <option key={loc.id} value={loc.id}>
                   {loc.name}
@@ -181,21 +188,21 @@ export function OrderBuilder({
           </div>
         )}
         <div>
-          <Label htmlFor="order-note">Order note</Label>
+          <Label htmlFor="order-note">{t("newOrder.orderNote")}</Label>
           <Textarea
             id="order-note"
             rows={2}
             value={note}
             onChange={(e) => setNote(e.target.value)}
-            placeholder="Special instructions..."
+            placeholder={t("newOrder.orderNotePlaceholder")}
           />
         </div>
         <div className="flex items-center justify-between text-lg font-bold">
-          <span>Total</span>
+          <span>{t("common.total")}</span>
           <span>{formatCurrency(total, currency)}</span>
         </div>
         <Button size="lg" className="w-full" loading={submitting} onClick={submit}>
-          Place Order
+          {t("newOrder.placeOrder")}
         </Button>
       </div>
     </div>
@@ -206,11 +213,11 @@ export function OrderBuilder({
       <div className="flex-1">
         <div
           role="tablist"
-          aria-label="Menu categories"
+          aria-label={t("menu.categories")}
           className="mb-3 flex gap-2 overflow-x-auto scrollbar-thin pb-1"
         >
           {[
-            { id: ALL_CATEGORY, name: "ALL", count: menu.allCount },
+            { id: ALL_CATEGORY, name: t("common.all"), count: menu.allCount },
             ...menu.categories.map((c) => ({
               id: c.id,
               name: c.name,
@@ -260,9 +267,7 @@ export function OrderBuilder({
           ))}
           {activeProducts.length === 0 && (
             <p className="col-span-full py-10 text-center text-sm text-muted-foreground">
-              {menu.categories.length === 0
-                ? "No products are available right now."
-                : "No products in this category"}
+              {menu.categories.length === 0 ? t("newOrder.noProducts") : t("menu.noProducts")}
             </p>
           )}
         </div>
@@ -272,7 +277,7 @@ export function OrderBuilder({
       <div className="hidden w-80 shrink-0 lg:block">
         <Card className="sticky top-4 flex h-[calc(100vh-6rem)] flex-col p-4">
           <div className="mb-2 flex items-center gap-2 font-semibold">
-            <ShoppingCart className="h-4 w-4" /> Current Order
+            <ShoppingCart className="h-4 w-4" /> {t("newOrder.currentOrder")}
           </div>
           {cartPanel}
         </Card>
@@ -285,13 +290,13 @@ export function OrderBuilder({
           className="fixed bottom-4 left-4 right-4 z-30 flex items-center justify-between rounded-xl bg-brand-600 px-4 py-3 text-white shadow-lg lg:hidden"
         >
           <span className="flex items-center gap-2 font-medium">
-            <ShoppingCart className="h-5 w-5" /> {itemCount} item{itemCount === 1 ? "" : "s"}
+            <ShoppingCart className="h-5 w-5" /> {plural("orders.itemCount", itemCount)}
           </span>
           <span className="font-bold">{formatCurrency(total, currency)}</span>
         </button>
       )}
 
-      <Modal open={cartOpen} onClose={() => setCartOpen(false)} title="Current Order" size="sm">
+      <Modal open={cartOpen} onClose={() => setCartOpen(false)} title={t("newOrder.currentOrder")} size="sm">
         {cartPanel}
       </Modal>
     </div>

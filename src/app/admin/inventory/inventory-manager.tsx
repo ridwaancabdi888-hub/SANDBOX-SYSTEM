@@ -9,6 +9,7 @@ import { EmptyState } from "@/components/ui/states";
 import { cn } from "@/lib/utils";
 import { IngredientModal } from "./ingredient-modal";
 import { AdjustStockModal } from "./adjust-stock-modal";
+import { useT } from "@/lib/i18n";
 import type { Ingredient, InventoryTransaction } from "@/lib/types/domain";
 import { LocalDateTime } from "@/components/ui/local-time";
 
@@ -25,6 +26,7 @@ export function InventoryManager({
   initialHistory: HistoryRow[];
 }) {
   const router = useRouter();
+  const t = useT();
   const [tab, setTab] = useState<"ingredients" | "history">("ingredients");
   const [ingredientModal, setIngredientModal] = useState<{ open: boolean; ingredient: Ingredient | null }>({
     open: false,
@@ -42,13 +44,13 @@ export function InventoryManager({
   return (
     <div className="flex-1 p-4 lg:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Inventory</h1>
+        <h1 className="text-2xl font-bold">{t("inventory.title")}</h1>
         <div className="flex gap-2">
           <TabButton active={tab === "ingredients"} onClick={() => setTab("ingredients")} icon={Boxes}>
-            Ingredients
+            {t("inventory.ingredients")}
           </TabButton>
           <TabButton active={tab === "history"} onClick={() => setTab("history")} icon={History}>
-            Stock History
+            {t("inventory.stockHistory")}
           </TabButton>
         </div>
       </div>
@@ -57,23 +59,23 @@ export function InventoryManager({
         <div>
           <div className="mb-3 flex justify-end">
             <Button onClick={() => setIngredientModal({ open: true, ingredient: null })}>
-              <Plus className="h-4 w-4" /> New Ingredient
+              <Plus className="h-4 w-4" /> {t("inventory.newIngredient")}
             </Button>
           </div>
           {initialIngredients.length === 0 ? (
-            <EmptyState title="No ingredients yet" />
+            <EmptyState title={t("inventory.empty")} description={t("inventory.emptyHint")} />
           ) : (
             <div className="overflow-x-auto rounded-xl border border-border">
               <table className="w-full text-sm">
                 <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
                   <tr>
-                    <th className="px-3 py-2">Name</th>
-                    <th className="px-3 py-2">Stock</th>
-                    <th className="px-3 py-2">Minimum</th>
-                    <th className="px-3 py-2">Cost/unit</th>
-                    <th className="px-3 py-2">Supplier</th>
-                    <th className="px-3 py-2">Status</th>
-                    <th className="sticky right-0 z-10 bg-muted px-3 py-2 text-right shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)] sm:static sm:shadow-none">Actions</th>
+                    <th className="px-3 py-2">{t("common.name")}</th>
+                    <th className="px-3 py-2">{t("inventory.stock")}</th>
+                    <th className="px-3 py-2">{t("common.minimum")}</th>
+                    <th className="px-3 py-2">{t("inventory.costPerUnitShort")}</th>
+                    <th className="px-3 py-2">{t("inventory.supplier")}</th>
+                    <th className="px-3 py-2">{t("common.status")}</th>
+                    <th className="sticky right-0 z-10 bg-muted px-3 py-2 text-right shadow-[-6px_0_6px_-6px_rgba(0,0,0,0.15)] sm:static sm:shadow-none">{t("common.actions")}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -92,13 +94,13 @@ export function InventoryManager({
                         <td className="px-3 py-2 text-muted-foreground">{ing.supplier ?? "—"}</td>
                         <td className="px-3 py-2">
                           {!ing.active ? (
-                            <Badge>Inactive</Badge>
+                            <Badge>{t("common.inactive")}</Badge>
                           ) : low ? (
                             <Badge variant="danger">
-                              <AlertTriangle className="h-3 w-3" /> Low
+                              <AlertTriangle className="h-3 w-3" /> {t("common.low")}
                             </Badge>
                           ) : (
-                            <Badge variant="success">OK</Badge>
+                            <Badge variant="success">{t("inventory.ok")}</Badge>
                           )}
                         </td>
                         {/* Pinned right so Adjust/Edit stay reachable while
@@ -110,7 +112,7 @@ export function InventoryManager({
                               variant="outline"
                               onClick={() => setAdjustModal({ open: true, ingredient: ing })}
                             >
-                              <PackagePlus className="h-3.5 w-3.5" /> Adjust
+                              <PackagePlus className="h-3.5 w-3.5" /> {t("inventory.adjust")}
                             </Button>
                             <Button
                               size="sm"
@@ -132,18 +134,18 @@ export function InventoryManager({
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border">
           {initialHistory.length === 0 ? (
-            <EmptyState title="No stock transactions yet" />
+            <EmptyState title={t("inventory.noTransactions")} />
           ) : (
             <table className="w-full text-sm">
               <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2">Ingredient</th>
-                  <th className="px-3 py-2">Type</th>
-                  <th className="px-3 py-2">Qty</th>
-                  <th className="px-3 py-2">Before → After</th>
-                  <th className="px-3 py-2">User</th>
-                  <th className="px-3 py-2">Reason</th>
-                  <th className="px-3 py-2">Date</th>
+                  <th className="px-3 py-2">{t("inventory.ingredient")}</th>
+                  <th className="px-3 py-2">{t("common.type")}</th>
+                  <th className="px-3 py-2">{t("common.qty")}</th>
+                  <th className="px-3 py-2">{t("inventory.beforeAfter")}</th>
+                  <th className="px-3 py-2">{t("activity.user")}</th>
+                  <th className="px-3 py-2">{t("inventory.reason")}</th>
+                  <th className="px-3 py-2">{t("common.date")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -160,7 +162,7 @@ export function InventoryManager({
                     <td className="px-3 py-2 text-muted-foreground">
                       {tx.before_quantity} → {tx.after_quantity}
                     </td>
-                    <td className="px-3 py-2 text-muted-foreground">{tx.user?.full_name ?? "System"}</td>
+                    <td className="px-3 py-2 text-muted-foreground">{tx.user?.full_name ?? t("inventory.system")}</td>
                     <td className="px-3 py-2 text-muted-foreground">{tx.reason ?? "—"}</td>
                     <td className="px-3 py-2 text-muted-foreground"><LocalDateTime value={tx.created_at} /></td>
                   </tr>

@@ -3,6 +3,7 @@
 import { ReactNode, useEffect } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export function Modal({
   open,
@@ -19,6 +20,7 @@ export function Modal({
   children: ReactNode;
   size?: "sm" | "md" | "lg" | "xl";
 }) {
+  const t = useT();
   useEffect(() => {
     if (!open) return;
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
@@ -65,7 +67,7 @@ export function Modal({
             <button
               onClick={onClose}
               className="-m-1 flex shrink-0 items-center justify-center rounded-md p-1 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
-              aria-label="Close"
+              aria-label={t("common.close")}
             >
               <X className="h-5 w-5" />
             </button>

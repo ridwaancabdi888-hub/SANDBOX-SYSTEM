@@ -13,21 +13,36 @@ export const LOGO_ACCEPTED_TYPES = [
   "image/svg+xml",
 ] as const;
 export const LOGO_ACCEPT_ATTR = LOGO_ACCEPTED_TYPES.join(",");
-export const LOGO_FORMATS_LABEL = "PNG, JPG, JPEG, WEBP or SVG · up to 2 MB";
+export const LOGO_FORMATS_LABEL = "PNG, JPG, JPEG, WEBP or SVG";
+
+/** Sentinel thrown when Storage RLS rejects the write. It is the one upload
+ *  failure a user can act on, so the UI translates it rather than surfacing
+ *  the raw Postgres message. */
+export const LOGO_FORBIDDEN = "LOGO_FORBIDDEN";
+
+/**
+ * Why a file was rejected, as data rather than prose.
+ *
+ * This module cannot see the locale (it is a plain service, not a component),
+ * so it reports *what* was wrong and lets the caller phrase it.
+ */
+export type LogoRejection =
+  | { reason: "type" }
+  | { reason: "size"; mb: string }
+  | { reason: "empty" };
 
 /**
  * Validates a candidate logo before it costs the user an upload round-trip.
- * Returns a human-readable reason, or null when the file is acceptable.
+ * Returns null when the file is acceptable.
  */
-export function validateLogoFile(file: File): string | null {
+export function validateLogoFile(file: File): LogoRejection | null {
   if (!(LOGO_ACCEPTED_TYPES as readonly string[]).includes(file.type)) {
-    return `Unsupported file type${file.type ? ` (${file.type})` : ""}. Use ${LOGO_FORMATS_LABEL}.`;
+    return { reason: "type" };
   }
   if (file.size > LOGO_MAX_BYTES) {
-    const mb = (file.size / (1024 * 1024)).toFixed(1);
-    return `That file is ${mb} MB. The limit is 2 MB — try exporting a smaller image.`;
+    return { reason: "size", mb: (file.size / (1024 * 1024)).toFixed(1) };
   }
-  if (file.size === 0) return "That file is empty.";
+  if (file.size === 0) return { reason: "empty" };
   return null;
 }
 
@@ -54,8 +69,8 @@ function extensionFor(file: File): string {
  * caching serving the previous logo after a replace.
  */
 export async function uploadBrandingLogo(supabase: Client, file: File): Promise<string> {
-  const reason = validateLogoFile(file);
-  if (reason) throw new Error(reason);
+  const rejection = validateLogoFile(file);
+  if (rejection) throw new Error(rejection.reason);
 
   const path = `logo/${crypto.randomUUID()}.${extensionFor(file)}`;
   const { error } = await supabase.storage.from(BUCKET).upload(path, file, {
@@ -66,7 +81,7 @@ export async function uploadBrandingLogo(supabase: Client, file: File): Promise<
   if (error) {
     throw new Error(
       /row-level security|not authorized|Unauthorized/i.test(error.message)
-        ? "Only an admin can change the cafeteria logo."
+        ? LOGO_FORBIDDEN
         : `Upload failed: ${error.message}`
     );
   }

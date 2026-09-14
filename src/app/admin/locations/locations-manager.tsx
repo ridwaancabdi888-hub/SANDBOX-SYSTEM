@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/states";
 import { useConfirm } from "@/components/ui/confirm-dialog";
 import { LocationModal } from "./location-modal";
 import { QrViewModal } from "./qr-view-modal";
+import { useT } from "@/lib/i18n";
 import type { Location } from "@/lib/types/domain";
 
 export function LocationsManager({
@@ -25,6 +26,7 @@ export function LocationsManager({
 }) {
   const router = useRouter();
   const confirm = useConfirm();
+  const t = useT();
   const [formModal, setFormModal] = useState<{ open: boolean; location: Location | null }>({
     open: false,
     location: null,
@@ -42,44 +44,44 @@ export function LocationsManager({
     try {
       const supabase = createClient();
       await updateLocation(supabase, location.id, { active: !location.active });
-      toast.success(location.active ? "Location deactivated" : "Location activated");
+      toast.success(location.active ? t("locations.deactivated") : t("locations.activated"));
       refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to update location");
+      toast.error(err instanceof Error ? err.message : t("locations.updateFailed"));
     }
   }
 
   async function handleDelete(location: Location) {
     const ok = await confirm({
-      title: `Delete "${location.name}"?`,
-      description: "This cannot be undone. Existing orders keep their history.",
+      title: t("locations.confirmDelete", { name: location.name }),
+      description: t("locations.deleteBody"),
       variant: "danger",
     });
     if (!ok) return;
     try {
       const supabase = createClient();
       await deleteLocation(supabase, location.id);
-      toast.success("Location deleted");
+      toast.success(t("locations.deleted"));
       refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete location");
+      toast.error(err instanceof Error ? err.message : t("locations.deleteFailed"));
     }
   }
 
   return (
     <div className="flex-1 p-4 lg:p-6">
       <div className="mb-4 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">QR Locations</h1>
+        <h1 className="text-2xl font-bold">{t("locations.title")}</h1>
         <Button onClick={() => setFormModal({ open: true, location: null })}>
-          <Plus className="h-4 w-4" /> New Location
+          <Plus className="h-4 w-4" /> {t("locations.newLocation")}
         </Button>
       </div>
 
       {initialLocations.length === 0 ? (
         <EmptyState
           icon={<QrCode className="h-6 w-6" />}
-          title="No QR locations yet"
-          description="Create seating locations so customers can scan a QR code and order from their seat."
+          title={t("locations.empty")}
+          description={t("locations.emptyHint")}
         />
       ) : (
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -93,7 +95,7 @@ export function LocationsManager({
                 <p className="text-xs text-muted-foreground">{loc.code}</p>
               </div>
               <Badge variant={loc.active ? "success" : "default"}>
-                {loc.active ? "Active" : "Inactive"}
+                {loc.active ? t("common.active") : t("common.inactive")}
               </Badge>
               <div className="flex w-full gap-1">
                 <Button

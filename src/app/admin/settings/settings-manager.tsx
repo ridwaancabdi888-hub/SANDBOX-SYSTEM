@@ -3,7 +3,7 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
-import { Save, Upload, Trash2, ImageIcon, Loader2, Palette } from "lucide-react";
+import { Save, Upload, Trash2, ImageIcon, Loader2, Palette, Languages } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { updateSettings } from "@/lib/services/settings";
 import {
@@ -12,10 +12,13 @@ import {
   validateLogoFile,
   LOGO_ACCEPT_ATTR,
   LOGO_FORMATS_LABEL,
+  LOGO_FORBIDDEN,
 } from "@/lib/services/branding";
 import { PrinterManager } from "@/components/printing/printer-manager";
 import { BrandLogo } from "@/components/layout/brand-logo";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { LanguageToggle } from "@/components/layout/language-toggle";
+import { useT } from "@/lib/i18n";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
@@ -31,6 +34,7 @@ export function SettingsManager({
 }) {
   const [settings, setSettings] = useState(initialSettings);
   const [savingSettings, setSavingSettings] = useState(false);
+  const t = useT();
 
   async function saveSettings() {
     setSavingSettings(true);
@@ -47,9 +51,9 @@ export function SettingsManager({
         allow_negative_stock: settings.allow_negative_stock,
       });
       setSettings(saved);
-      toast.success("Settings saved");
+      toast.success(t("settings.saved"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save settings");
+      toast.error(err instanceof Error ? err.message : t("settings.saveFailed"));
     } finally {
       setSavingSettings(false);
     }
@@ -57,26 +61,41 @@ export function SettingsManager({
 
   return (
     <div className="mx-auto w-full max-w-6xl flex-1 space-y-6 p-4 lg:p-6">
-      <h1 className="text-2xl font-bold">Settings</h1>
+      <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Palette className="h-4 w-4" /> Appearance
+            <Palette className="h-4 w-4" /> {t("settings.appearance")}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div>
-            <Label>Theme</Label>
+            <Label>{t("settings.theme")}</Label>
             <div className="mt-2">
               <ThemeToggle />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
-            System follows this device&apos;s light/dark setting. The choice is saved per
-            device, not per account — the counter tablet and your laptop can differ, and it
-            applies the moment you pick it. Every screen has the same toggle in its header.
-          </p>
+          <p className="text-xs text-muted-foreground">{t("settings.themeHint")}</p>
+        </CardContent>
+      </Card>
+
+      {/* Language sits beside Appearance because it is the same kind of
+          choice: a device preference, not cafeteria data. */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Languages className="h-4 w-4" /> {t("settings.language")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div>
+            <Label>{t("settings.language")}</Label>
+            <div className="mt-2">
+              <LanguageToggle />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">{t("settings.languageHint")}</p>
         </CardContent>
       </Card>
 
@@ -87,11 +106,11 @@ export function SettingsManager({
 
       <Card>
         <CardHeader>
-          <CardTitle>Cafeteria Information</CardTitle>
+          <CardTitle>{t("settings.cafeteriaInfo")}</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <div>
-            <Label htmlFor="s-name">Cafeteria name</Label>
+            <Label htmlFor="s-name">{t("settings.cafeteriaName")}</Label>
             <Input
               id="s-name"
               value={settings.cafeteria_name}
@@ -99,7 +118,7 @@ export function SettingsManager({
             />
           </div>
           <div>
-            <Label htmlFor="s-currency">Currency</Label>
+            <Label htmlFor="s-currency">{t("settings.currency")}</Label>
             <Select
               id="s-currency"
               value={settings.currency}
@@ -114,7 +133,7 @@ export function SettingsManager({
             </Select>
           </div>
           <div>
-            <Label htmlFor="s-address">Address</Label>
+            <Label htmlFor="s-address">{t("settings.address")}</Label>
             <Input
               id="s-address"
               value={settings.address ?? ""}
@@ -122,7 +141,7 @@ export function SettingsManager({
             />
           </div>
           <div>
-            <Label htmlFor="s-phone">Phone</Label>
+            <Label htmlFor="s-phone">{t("settings.phone")}</Label>
             <Input
               id="s-phone"
               value={settings.phone ?? ""}
@@ -130,7 +149,7 @@ export function SettingsManager({
             />
           </div>
           <div>
-            <Label htmlFor="s-header">Receipt header</Label>
+            <Label htmlFor="s-header">{t("settings.receiptHeader")}</Label>
             <Input
               id="s-header"
               value={settings.receipt_header ?? ""}
@@ -138,7 +157,7 @@ export function SettingsManager({
             />
           </div>
           <div>
-            <Label htmlFor="s-footer">Receipt footer</Label>
+            <Label htmlFor="s-footer">{t("settings.receiptFooter")}</Label>
             <Input
               id="s-footer"
               value={settings.receipt_footer ?? ""}
@@ -146,7 +165,7 @@ export function SettingsManager({
             />
           </div>
           <div>
-            <Label htmlFor="s-threshold">Default low-stock threshold</Label>
+            <Label htmlFor="s-threshold">{t("settings.defaultLowStockThreshold")}</Label>
             <Input
               id="s-threshold"
               type="number"
@@ -164,21 +183,19 @@ export function SettingsManager({
               onChange={(e) => setSettings({ ...settings, allow_negative_stock: e.target.checked })}
               className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
             />
-            Allow negative stock (not recommended)
+            {t("settings.allowNegativeStock")}
           </label>
         </CardContent>
         <div className="flex justify-end px-4 pb-4 sm:px-5 sm:pb-5">
           <Button loading={savingSettings} onClick={saveSettings}>
-            <Save className="h-4 w-4" /> Save Settings
+            <Save className="h-4 w-4" /> {t("settings.saveSettings")}
           </Button>
         </div>
       </Card>
 
       <div id="printers">
-        <h2 className="mb-1 text-lg font-semibold">Printers</h2>
-        <p className="mb-3 text-sm text-muted-foreground">
-          Define the printers this cafeteria uses. Each device then picks which one it prints to.
-        </p>
+        <h2 className="mb-1 text-lg font-semibold">{t("settings.printers")}</h2>
+        <p className="mb-3 text-sm text-muted-foreground">{t("settings.printersHint")}</p>
         <PrinterManager profiles={printers} editable />
       </div>
     </div>
@@ -202,6 +219,7 @@ function BrandingCard({
   onChange: (next: Settings) => void;
 }) {
   const router = useRouter();
+  const t = useT();
   const fileInput = useRef<HTMLInputElement>(null);
   // undefined = untouched · null = remove on save · string = new logo
   const [pending, setPending] = useState<string | null | undefined>(undefined);
@@ -213,9 +231,15 @@ function BrandingCard({
   const dirty = pending !== undefined && pending !== current;
 
   async function handleFile(file: File) {
-    const reason = validateLogoFile(file);
-    if (reason) {
-      toast.error(reason);
+    const rejection = validateLogoFile(file);
+    if (rejection) {
+      toast.error(
+        rejection.reason === "type"
+          ? t("settings.logoWrongType")
+          : rejection.reason === "size"
+            ? t("settings.logoTooLargeMb", { mb: rejection.mb })
+            : t("settings.logoEmpty")
+      );
       return;
     }
 
@@ -226,9 +250,14 @@ function BrandingCard({
       const url = await uploadBrandingLogo(supabase, file);
       setPending(url);
       if (superseded) await deleteBrandingLogo(supabase, superseded);
-      toast.success("Logo uploaded — choose Save changes to apply it");
+      toast.success(t("settings.logoPendingSave"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Upload failed");
+      const message = err instanceof Error ? err.message : "";
+      toast.error(
+        message === LOGO_FORBIDDEN
+          ? t("settings.logoForbidden")
+          : message || t("settings.logoUploadFailed")
+      );
     } finally {
       setUploading(false);
     }
@@ -247,9 +276,9 @@ function BrandingCard({
       // The sidebar and header are server-rendered from this row, so refresh
       // the route tree or the new logo wouldn't appear until a navigation.
       router.refresh();
-      toast.success(saved.logo_url ? "Logo saved" : "Logo removed");
+      toast.success(saved.logo_url ? t("settings.logoUploaded") : t("settings.logoRemoved"));
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save logo");
+      toast.error(err instanceof Error ? err.message : t("settings.logoUploadFailed"));
     } finally {
       setSaving(false);
     }
@@ -265,12 +294,12 @@ function BrandingCard({
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <ImageIcon className="h-4 w-4" /> Branding
+          <ImageIcon className="h-4 w-4" /> {t("settings.branding")}
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         <div>
-          <Label>Cafeteria logo</Label>
+          <Label>{t("settings.cafeteriaLogo")}</Label>
           <div className="mt-2 flex flex-wrap items-center gap-4">
             <div className="flex h-24 w-24 shrink-0 items-center justify-center rounded-xl border border-dashed border-border bg-muted/40 p-2">
               {uploading ? (
@@ -296,7 +325,7 @@ function BrandingCard({
                   onClick={() => fileInput.current?.click()}
                 >
                   <Upload className="h-4 w-4" />
-                  {shown ? "Replace logo" : "Upload logo"}
+                  {shown ? t("settings.replaceLogo") : t("settings.uploadLogo")}
                 </Button>
                 {shown && (
                   <Button
@@ -306,19 +335,16 @@ function BrandingCard({
                     disabled={uploading || saving}
                     onClick={() => setPending(null)}
                   >
-                    <Trash2 className="h-4 w-4" /> Remove logo
+                    <Trash2 className="h-4 w-4" /> {t("settings.removeLogo")}
                   </Button>
                 )}
               </div>
               <p className="text-xs text-muted-foreground">
-                Supported formats: {LOGO_FORMATS_LABEL}. Shown on the sign-in page, the sidebar,
-                the customer QR menu and receipts. A square image works best; the logo is never
-                stretched or cropped.
+                {t("settings.supportedFormats", { formats: LOGO_FORMATS_LABEL })}{" "}
+                {t("settings.logoUsage")}
               </p>
               {!shown && (
-                <p className="text-xs text-muted-foreground">
-                  No logo uploaded — SANDBOX is using its built-in mark.
-                </p>
+                <p className="text-xs text-muted-foreground">{t("settings.noLogoHint")}</p>
               )}
             </div>
           </div>
@@ -337,19 +363,16 @@ function BrandingCard({
           />
         </div>
 
-        <p className="text-xs text-muted-foreground">
-          Cafeteria name, receipt header and receipt footer are edited under Cafeteria
-          Information below.
-        </p>
+        <p className="text-xs text-muted-foreground">{t("settings.brandingFooterHint")}</p>
       </CardContent>
       <div className="flex items-center justify-end gap-2 px-4 pb-4 sm:px-5 sm:pb-5">
         {dirty && (
           <Button type="button" variant="outline" disabled={saving} onClick={() => void discard()}>
-            Cancel
+            {t("common.cancel")}
           </Button>
         )}
         <Button loading={saving} disabled={!dirty || uploading} onClick={save}>
-          <Save className="h-4 w-4" /> Save changes
+          <Save className="h-4 w-4" /> {t("settings.saveChanges")}
         </Button>
       </div>
     </Card>

@@ -2,6 +2,7 @@
 
 import { RefreshCw } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useT } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import type { PrintJob, PrintJobStatus } from "@/lib/printing";
@@ -27,12 +28,13 @@ export function PrintQueuePanel({
   jobs: PrintJob[];
   onRetry: (jobId: string) => void;
 }) {
+  const t = useT();
   if (jobs.length === 0) return null;
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Print queue</CardTitle>
+        <CardTitle>{t("printer.queueTitle")}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {jobs.slice(0, 8).map((job) => (
@@ -52,7 +54,7 @@ export function PrintQueuePanel({
               <Badge variant={STATUS_VARIANT[job.status]}>{job.status}</Badge>
               {job.status === "FAILED" && (
                 <Button size="sm" variant="outline" onClick={() => onRetry(job.id)}>
-                  <RefreshCw className="h-3.5 w-3.5" /> Retry
+                  <RefreshCw className="h-3.5 w-3.5" /> {t("printer.retryJob")}
                 </Button>
               )}
             </div>

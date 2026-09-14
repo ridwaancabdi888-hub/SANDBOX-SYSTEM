@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "sonner";
+import { useT } from "@/lib/i18n";
 import { Printer, AlertTriangle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { getOrderById } from "@/lib/services/orders";
@@ -43,6 +44,7 @@ export function ReprintReceiptModal({
   printers: PrinterProfile[];
 }) {
   const { service, profile, status, ready } = usePrinter(printers);
+  const t = useT();
   const [loading, setLoading] = useState(false);
   const [receipt, setReceipt] = useState<ReceiptData | null>(null);
   const [unpaid, setUnpaid] = useState(false);
@@ -79,7 +81,7 @@ export function ReprintReceiptModal({
         );
       } catch (error) {
         if (!cancelled) {
-          toast.error(error instanceof Error ? error.message : "Could not load the receipt");
+          toast.error(error instanceof Error ? error.message : t("printer.receiptLoadFailed"));
         }
       } finally {
         if (!cancelled) setLoading(false);
@@ -89,7 +91,9 @@ export function ReprintReceiptModal({
     return () => {
       cancelled = true;
     };
-  }, [open, orderId, ready, profile.paperWidth, settings, fallbackCashierName]);
+    // `t` is memoised per locale by the provider, so this does not re-run on
+    // every render — only if the language actually changes.
+  }, [open, orderId, ready, profile.paperWidth, settings, fallbackCashierName, t]);
 
   const handlePrint = useCallback(async () => {
     if (!receipt || !service) return;
@@ -102,33 +106,35 @@ export function ReprintReceiptModal({
         // A reprint is deliberately repeatable, so each press is its own job.
         idempotencyKey: `reprint-${orderId}-${Date.now()}`,
       });
-      if (!service.usesSystemDialog) toast.success("Receipt sent to printer");
+      if (!service.usesSystemDialog) toast.success(t("printer.sentToPrinter"));
     } catch (error) {
       if (error instanceof PrinterError) {
         toast.error(error.message, { description: error.hint });
       } else {
-        toast.error("Printing failed");
+        toast.error(t("printer.printingFailed"));
       }
     } finally {
       setPrinting(false);
     }
-  }, [receipt, service, orderId]);
+  }, [receipt, service, orderId, t]);
 
   return (
-    <Modal open={open} onClose={onClose} title="Reprint receipt" size="sm">
+    <Modal open={open} onClose={onClose} title={t("printer.reprintTitle")} size="sm">
       {loading || !ready ? (
-        <PageLoading label="Loading receipt…" />
+        <PageLoading label={t("printer.loadingReceipt")} />
       ) : receipt ? (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">Order #{receipt.orderNumber}</span>
+            <span className="text-sm text-muted-foreground">
+              {t("orders.orderNumber", { number: receipt.orderNumber })}
+            </span>
             <PrinterStatusPill status={status} />
           </div>
 
           {unpaid && (
             <div className="flex items-start gap-2 rounded-lg bg-warning-bg px-3 py-2 text-xs text-warning">
               <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0" />
-              <span>This order has no payment recorded yet, so it prints as UNPAID.</span>
+              <span>{t("printer.unpaidWarning")}</span>
             </div>
           )}
 
@@ -138,15 +144,15 @@ export function ReprintReceiptModal({
 
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={onClose}>
-              Close
+              {t("common.close")}
             </Button>
             <Button className="flex-1" loading={printing} onClick={handlePrint}>
-              <Printer className="h-4 w-4" /> Reprint
+              <Printer className="h-4 w-4" /> {t("orders.reprint")}
             </Button>
           </div>
         </div>
       ) : (
-        <p className="py-6 text-center text-sm text-muted-foreground">Receipt unavailable.</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">{t("printer.receiptUnavailable")}</p>
       )}
     </Modal>
   );

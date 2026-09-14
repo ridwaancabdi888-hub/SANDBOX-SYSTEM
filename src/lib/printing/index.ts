@@ -26,12 +26,24 @@ import type { ConnectionType } from "./types";
 
 export interface ConnectionTypeInfo {
   value: ConnectionType;
+  /**
+   * English label, kept for non-UI consumers: print-queue entries, logs and
+   * the sample receipt's header, none of which are translated.
+   */
   label: string;
   /** Plain-language description for a cafeteria owner, not a developer. */
   blurb: string;
   /** Fields the settings form must collect for this transport. */
   fields: ("host" | "port" | "bridgeUrl" | "bleUuids")[];
   platforms: string;
+  /**
+   * Translation keys for the same three strings. The settings form renders
+   * these; `label`/`blurb`/`platforms` above stay English so this module keeps
+   * working outside React, where there is no locale to read.
+   */
+  labelKey: string;
+  blurbKey: string;
+  platformsKey: string;
 }
 
 /**
@@ -46,6 +58,9 @@ export const CONNECTION_TYPES: ConnectionTypeInfo[] = [
       "Always works. Prints through your device's normal print dialog to any printer the system already knows about.",
     fields: [],
     platforms: "Android · Windows · macOS · iOS · any browser",
+    labelKey: "connection.browserLabel",
+    blurbKey: "connection.browserBlurb",
+    platformsKey: "connection.browserPlatforms",
   },
   {
     value: "BLUETOOTH_CLASSIC",
@@ -54,6 +69,9 @@ export const CONNECTION_TYPES: ConnectionTypeInfo[] = [
       "For the common pocket/portable printers that pair with a PIN. Uses the free RawBT app on Android, which can talk to Bluetooth Classic printers that browsers cannot reach directly.",
     fields: [],
     platforms: "Android only",
+    labelKey: "connection.btClassicLabel",
+    blurbKey: "connection.btClassicBlurb",
+    platformsKey: "connection.btClassicPlatforms",
   },
   {
     value: "BLUETOOTH_BLE",
@@ -62,6 +80,9 @@ export const CONNECTION_TYPES: ConnectionTypeInfo[] = [
       "For newer Bluetooth LE printers. Connects straight from Chrome or Edge — no extra app. Not available on iPhone or iPad.",
     fields: ["bleUuids"],
     platforms: "Android · Windows · macOS · Linux (Chrome/Edge, HTTPS)",
+    labelKey: "connection.bleLabel",
+    blurbKey: "connection.bleBlurb",
+    platformsKey: "connection.blePlatforms",
   },
   {
     value: "LAN",
@@ -70,6 +91,9 @@ export const CONNECTION_TYPES: ConnectionTypeInfo[] = [
       "For printers with their own IP address, using raw ESC/POS on port 9100. The SANDBOX server sends the job, so it must share the printer's network.",
     fields: ["host", "port"],
     platforms: "Any device · requires a self-hosted server on the same LAN",
+    labelKey: "connection.lanLabel",
+    blurbKey: "connection.lanBlurb",
+    platformsKey: "connection.lanPlatforms",
   },
   {
     value: "USB_BRIDGE",
@@ -78,6 +102,9 @@ export const CONNECTION_TYPES: ConnectionTypeInfo[] = [
       "For a printer plugged into a counter PC. Browsers cannot drive USB printers directly, so a small bridge program on that PC forwards the job.",
     fields: ["bridgeUrl"],
     platforms: "Windows · macOS · Linux (bridge runs on the PC)",
+    labelKey: "connection.usbBridgeLabel",
+    blurbKey: "connection.usbBridgeBlurb",
+    platformsKey: "connection.usbBridgePlatforms",
   },
   {
     value: "WINDOWS_SYSTEM",
@@ -86,6 +113,9 @@ export const CONNECTION_TYPES: ConnectionTypeInfo[] = [
       "Use the printer's own driver installed in Windows or macOS. Prints through the system dialog; set the paper size to your receipt roll.",
     fields: [],
     platforms: "Windows · macOS",
+    labelKey: "connection.windowsLabel",
+    blurbKey: "connection.windowsBlurb",
+    platformsKey: "connection.windowsPlatforms",
   },
   {
     value: "IOS_BRIDGE",
@@ -94,6 +124,9 @@ export const CONNECTION_TYPES: ConnectionTypeInfo[] = [
       "iOS browsers cannot use Bluetooth at all. Point this at a bridge on your network, or use a network printer or the browser print dialog instead.",
     fields: ["bridgeUrl"],
     platforms: "iOS · iPadOS",
+    labelKey: "connection.iosBridgeLabel",
+    blurbKey: "connection.iosBridgeBlurb",
+    platformsKey: "connection.iosBridgePlatforms",
   },
   {
     value: "RAWBT",
@@ -102,6 +135,9 @@ export const CONNECTION_TYPES: ConnectionTypeInfo[] = [
       "Sends jobs to the RawBT Android app explicitly. Same as the Bluetooth option above, but also covers RawBT's USB and network targets.",
     fields: [],
     platforms: "Android only",
+    labelKey: "connection.rawbtLabel",
+    blurbKey: "connection.rawbtBlurb",
+    platformsKey: "connection.rawbtPlatforms",
   },
 ];
 

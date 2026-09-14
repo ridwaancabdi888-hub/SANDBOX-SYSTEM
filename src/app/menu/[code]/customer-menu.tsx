@@ -13,6 +13,8 @@ import { Modal } from "@/components/ui/modal";
 import { Textarea } from "@/components/ui/input";
 import { formatCurrency, cn } from "@/lib/utils";
 import { ALL_CATEGORY, buildMenuFilter } from "@/lib/menu-filter";
+import { useT, usePlural } from "@/lib/i18n";
+import { CustomerLanguageToggle } from "@/components/layout/language-toggle";
 import type { Category, Product } from "@/lib/types/domain";
 
 export function CustomerMenu({
@@ -36,6 +38,8 @@ export function CustomerMenu({
   const [activeCategory, setActiveCategory] = useState<string>(ALL_CATEGORY);
   const [cartOpen, setCartOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const t = useT();
+  const plural = usePlural();
   const { items, orderNote, addItem, incrementItem, decrementItem, updateItemNote, setOrderNote, clear } =
     useCartStore();
 
@@ -60,7 +64,7 @@ export function CustomerMenu({
       clear();
       router.push(`/order/${result.access_token}`);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to place order");
+      toast.error(err instanceof Error ? err.message : t("customer.orderFailed"));
     } finally {
       setSubmitting(false);
     }
@@ -70,22 +74,28 @@ export function CustomerMenu({
     <div className="min-h-screen bg-background pb-24">
       <header className="sticky top-0 z-20 border-b border-border bg-card/95 backdrop-blur">
         <div className="mx-auto max-w-2xl px-4 py-3">
-          <div className="flex items-center gap-2">
-            <BrandLogo logoUrl={logoUrl} name={cafeteriaName} size="md" rounded="rounded-xl" />
-            <div>
-              <div className="text-sm font-bold leading-tight">{cafeteriaName}</div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <MapPin className="h-3 w-3" /> {locationName}
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-2">
+              <BrandLogo logoUrl={logoUrl} name={cafeteriaName} size="md" rounded="rounded-xl" />
+              <div className="min-w-0">
+                <div className="truncate text-sm font-bold leading-tight">{cafeteriaName}</div>
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <MapPin className="h-3 w-3 shrink-0" />
+                  <span className="truncate">{locationName}</span>
+                </div>
               </div>
             </div>
+            {/* Shares the brand row rather than claiming its own: on a 320px
+                phone a dedicated language bar costs a product row. */}
+            <CustomerLanguageToggle className="shrink-0" />
           </div>
         </div>
         <div
           role="tablist"
-          aria-label="Menu categories"
+          aria-label={t("menu.categories")}
           className="mx-auto flex max-w-2xl gap-2 overflow-x-auto scrollbar-thin px-4 pb-3"
         >
-          {[{ id: ALL_CATEGORY, name: "ALL" }, ...menu.categories].map((cat) => (
+          {[{ id: ALL_CATEGORY, name: t("common.all") }, ...menu.categories].map((cat) => (
             <button
               key={cat.id}
               role="tab"
@@ -107,7 +117,7 @@ export function CustomerMenu({
       <main className="mx-auto max-w-2xl px-4 py-4">
         {menu.categories.length === 0 ? (
           <p className="py-16 text-center text-sm text-muted-foreground">
-            No items are available right now. Please check back soon.
+            {t("customer.noItems")}
           </p>
         ) : (
           <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
@@ -146,7 +156,7 @@ export function CustomerMenu({
                         <div className="flex items-center justify-between gap-1 rounded-full bg-muted p-1">
                           <button
                             onClick={() => decrementItem(product.id)}
-                            aria-label={`Remove one ${product.name}`}
+                            aria-label={t("newOrder.removeOne", { name: product.name })}
                             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-card text-foreground shadow-sm touch:h-10 touch:w-10"
                           >
                             <Minus className="h-4 w-4" />
@@ -156,7 +166,7 @@ export function CustomerMenu({
                           </span>
                           <button
                             onClick={() => incrementItem(product.id)}
-                            aria-label={`Add one more ${product.name}`}
+                            aria-label={t("newOrder.addOne", { name: product.name })}
                             className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white touch:h-10 touch:w-10"
                           >
                             <Plus className="h-4 w-4" />
@@ -172,10 +182,10 @@ export function CustomerMenu({
                               imageUrl: product.image_url,
                             })
                           }
-                          aria-label={`Add ${product.name} to your order`}
+                          aria-label={t("customer.addToOrder", { name: product.name })}
                           className="w-full rounded-full bg-brand-600 px-2.5 py-2 text-xs font-semibold text-white hover:bg-brand-700 touch:min-h-11 touch:text-sm"
                         >
-                          Add
+                          {t("customer.add")}
                         </button>
                       )}
                     </div>
@@ -193,19 +203,19 @@ export function CustomerMenu({
           className="fixed bottom-4 left-4 right-4 z-30 mx-auto flex max-w-2xl items-center justify-between rounded-xl bg-brand-600 px-4 py-3.5 text-white shadow-xl"
         >
           <span className="flex items-center gap-2 font-semibold">
-            <ShoppingCart className="h-5 w-5" /> {count} item{count === 1 ? "" : "s"}
+            <ShoppingCart className="h-5 w-5" /> {plural("customer.itemCount", count)}
           </span>
           <span className="font-bold">{formatCurrency(total, currency)}</span>
         </button>
       )}
 
-      <Modal open={cartOpen} onClose={() => setCartOpen(false)} title="Your Order" size="sm">
+      <Modal open={cartOpen} onClose={() => setCartOpen(false)} title={t("customer.yourOrder")} size="sm">
         <div className="space-y-3">
           <div className="flex items-center gap-1 text-sm text-muted-foreground">
             <MapPin className="h-3.5 w-3.5" /> {locationName}
           </div>
           {items.length === 0 ? (
-            <p className="py-6 text-center text-sm text-muted-foreground">Your cart is empty</p>
+            <p className="py-6 text-center text-sm text-muted-foreground">{t("customer.cartEmpty")}</p>
           ) : (
             <div className="max-h-[40vh] space-y-2 overflow-y-auto scrollbar-thin sm:max-h-80">
               {items.map((item) => (
@@ -219,7 +229,7 @@ export function CustomerMenu({
                   <div className="mt-1.5 flex items-center gap-2">
                     <button
                       onClick={() => decrementItem(item.productId)}
-                      aria-label={`Remove one ${item.name}`}
+                      aria-label={t("newOrder.removeOne", { name: item.name })}
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted touch:h-11 touch:w-11"
                     >
                       <Minus className="h-4 w-4" />
@@ -229,7 +239,7 @@ export function CustomerMenu({
                     </span>
                     <button
                       onClick={() => incrementItem(item.productId)}
-                      aria-label={`Add one more ${item.name}`}
+                      aria-label={t("newOrder.addOne", { name: item.name })}
                       className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-brand-600 text-white touch:h-11 touch:w-11"
                     >
                       <Plus className="h-4 w-4" />
@@ -237,7 +247,7 @@ export function CustomerMenu({
                   </div>
                   <input
                     type="text"
-                    placeholder="e.g. no onion"
+                    placeholder={t("customer.itemNotePlaceholder")}
                     value={item.note ?? ""}
                     onChange={(e) => updateItemNote(item.productId, e.target.value)}
                     className="mt-2 w-full rounded-md border border-border bg-card px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-brand-400 touch:min-h-11 touch:text-sm"
@@ -250,14 +260,14 @@ export function CustomerMenu({
           <div>
             <Textarea
               rows={2}
-              placeholder="Order note (e.g. less sugar, extra spicy)"
+              placeholder={t("customer.orderNotePlaceholder")}
               value={orderNote}
               onChange={(e) => setOrderNote(e.target.value)}
             />
           </div>
 
           <div className="flex items-center justify-between border-t border-border pt-3 text-lg font-bold">
-            <span>Total</span>
+            <span>{t("common.total")}</span>
             <span>{formatCurrency(total, currency)}</span>
           </div>
 
@@ -268,7 +278,7 @@ export function CustomerMenu({
             loading={submitting}
             onClick={submitOrder}
           >
-            Place Order
+            {t("customer.placeOrder")}
           </Button>
         </div>
       </Modal>

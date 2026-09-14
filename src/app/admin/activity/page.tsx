@@ -3,28 +3,30 @@ import { getActivityLogs } from "@/lib/services/activity";
 import { EmptyState } from "@/components/ui/states";
 import { Badge } from "@/components/ui/badge";
 import { LocalDateTime } from "@/components/ui/local-time";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminActivityPage() {
+  const t = await getT();
   const supabase = await createClient();
   const logs = await getActivityLogs(supabase, 300);
 
   return (
     <div className="flex-1 p-4 lg:p-6">
-      <h1 className="mb-4 text-2xl font-bold">Activity Log</h1>
+      <h1 className="mb-4 text-2xl font-bold">{t("activity.title")}</h1>
       {logs.length === 0 ? (
-        <EmptyState title="No activity recorded yet" />
+        <EmptyState title={t("activity.empty")} description={t("activity.emptyHint")} />
       ) : (
         <div className="overflow-x-auto rounded-xl border border-border">
           <table className="w-full text-sm">
             <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="px-3 py-2">User</th>
-                <th className="px-3 py-2">Action</th>
-                <th className="px-3 py-2">Entity</th>
-                <th className="px-3 py-2">Description</th>
-                <th className="px-3 py-2">Date</th>
+                <th className="px-3 py-2">{t("activity.user")}</th>
+                <th className="px-3 py-2">{t("activity.action")}</th>
+                <th className="px-3 py-2">{t("activity.entity")}</th>
+                <th className="px-3 py-2">{t("common.description")}</th>
+                <th className="px-3 py-2">{t("common.date")}</th>
               </tr>
             </thead>
             <tbody>

@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from "react";
 import { Bell, Volume2, VolumeX, CheckCheck } from "lucide-react";
 import { useNotifications } from "@/lib/hooks/use-notifications";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 import type { Notification } from "@/lib/types/domain";
 import { LocalDateTime } from "@/components/ui/local-time";
 
@@ -18,6 +19,7 @@ export function NotificationBell({
     useNotifications(initial);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const t = useT();
 
   useEffect(() => {
     function onClick(e: MouseEvent) {
@@ -32,7 +34,7 @@ export function NotificationBell({
       <button
         onClick={() => setOpen((o) => !o)}
         className="relative flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
-        aria-label="Notifications"
+        aria-label={t("notifications.title")}
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
@@ -45,13 +47,13 @@ export function NotificationBell({
       {open && (
         <div className="absolute right-0 z-40 mt-2 w-80 max-w-[calc(100vw-1.5rem)] rounded-xl border border-border bg-card shadow-lg">
           <div className="flex items-center justify-between border-b border-border p-3">
-            <span className="font-semibold text-sm">Notifications</span>
+            <span className="font-semibold text-sm">{t("notifications.title")}</span>
             <div className="flex items-center gap-1">
               {showSoundToggle && (
                 <button
                   onClick={toggleSound}
                   className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
-                  title={soundEnabled ? "Mute sound" : "Enable sound"}
+                  title={soundEnabled ? t("notifications.muteSound") : t("notifications.enableSound")}
                 >
                   {soundEnabled ? (
                     <Volume2 className="h-4 w-4" />
@@ -64,7 +66,7 @@ export function NotificationBell({
                 <button
                   onClick={markAllRead}
                   className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
-                  title="Mark all read"
+                  title={t("notifications.markAllRead")}
                 >
                   <CheckCheck className="h-4 w-4" />
                 </button>
@@ -73,7 +75,7 @@ export function NotificationBell({
           </div>
           <div className="max-h-96 overflow-y-auto scrollbar-thin">
             {notifications.length === 0 ? (
-              <p className="p-6 text-center text-sm text-muted-foreground">No notifications yet</p>
+              <p className="p-6 text-center text-sm text-muted-foreground">{t("notifications.empty")}</p>
             ) : (
               notifications.map((n) => (
                 <button

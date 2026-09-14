@@ -14,6 +14,7 @@ import { EmptyState } from "@/components/ui/states";
 import { formatCurrency, cn } from "@/lib/utils";
 import { CategoryModal } from "./category-modal";
 import { ProductModal } from "./product-modal";
+import { useT } from "@/lib/i18n";
 import type { Category, Ingredient, Product } from "@/lib/types/domain";
 
 type ProductWithCategory = Product & { category: { id: string; name: string } | null };
@@ -31,6 +32,7 @@ export function MenuManager({
 }) {
   const router = useRouter();
   const confirm = useConfirm();
+  const t = useT();
   const [tab, setTab] = useState<"products" | "categories">("products");
   const [categoryModal, setCategoryModal] = useState<{ open: boolean; category: Category | null }>({
     open: false,
@@ -47,48 +49,48 @@ export function MenuManager({
 
   async function handleDeleteCategory(category: Category) {
     const ok = await confirm({
-      title: `Delete "${category.name}"?`,
-      description: "Products in this category will become uncategorized.",
+      title: t("menu.confirmDeleteCategory", { name: category.name }),
+      description: t("menu.deleteCategoryBody"),
       variant: "danger",
     });
     if (!ok) return;
     try {
       const supabase = createClient();
       await deleteCategory(supabase, category.id);
-      toast.success("Category deleted");
+      toast.success(t("menu.categoryDeleted"));
       refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete category");
+      toast.error(err instanceof Error ? err.message : t("menu.deleteFailed"));
     }
   }
 
   async function handleDeleteProduct(product: Product) {
     const ok = await confirm({
-      title: `Delete "${product.name}"?`,
-      description: "This cannot be undone.",
+      title: t("menu.confirmDeleteProduct", { name: product.name }),
+      description: t("menu.deleteProductBody"),
       variant: "danger",
     });
     if (!ok) return;
     try {
       const supabase = createClient();
       await deleteProduct(supabase, product.id);
-      toast.success("Product deleted");
+      toast.success(t("menu.productDeleted"));
       refresh();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to delete product");
+      toast.error(err instanceof Error ? err.message : t("menu.deleteFailed"));
     }
   }
 
   return (
     <div className="flex-1 p-4 lg:p-6">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Menu</h1>
+        <h1 className="text-2xl font-bold">{t("menu.title")}</h1>
         <div className="flex gap-2">
           <TabButton active={tab === "products"} onClick={() => setTab("products")} icon={ShoppingBag}>
-            Products
+            {t("menu.products")}
           </TabButton>
           <TabButton active={tab === "categories"} onClick={() => setTab("categories")} icon={Layers}>
-            Categories
+            {t("menu.categories")}
           </TabButton>
         </div>
       </div>
@@ -97,11 +99,11 @@ export function MenuManager({
         <div>
           <div className="mb-3 flex justify-end">
             <Button onClick={() => setProductModal({ open: true, product: null })}>
-              <Plus className="h-4 w-4" /> New Product
+              <Plus className="h-4 w-4" /> {t("menu.newProduct")}
             </Button>
           </div>
           {initialProducts.length === 0 ? (
-            <EmptyState title="No products yet" description="Add your first menu item to get started." />
+            <EmptyState title={t("menu.noProductsYet")} description={t("menu.noProductsYetHint")} />
           ) : (
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
               {initialProducts.map((product) => (
@@ -122,10 +124,10 @@ export function MenuManager({
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
                         <p className="truncate font-medium">{product.name}</p>
-                        <p className="text-xs text-muted-foreground">{product.category?.name ?? "Uncategorized"}</p>
+                        <p className="text-xs text-muted-foreground">{product.category?.name ?? t("menu.uncategorized")}</p>
                       </div>
                       <Badge variant={product.available ? "success" : "default"}>
-                        {product.available ? "Available" : "Hidden"}
+                        {product.available ? t("common.available") : t("common.hidden")}
                       </Badge>
                     </div>
                     <p className="mt-1 font-bold text-accent">
@@ -138,7 +140,7 @@ export function MenuManager({
                         className="flex-1"
                         onClick={() => setProductModal({ open: true, product })}
                       >
-                        <Pencil className="h-3.5 w-3.5" /> Edit
+                        <Pencil className="h-3.5 w-3.5" /> {t("common.edit")}
                       </Button>
                       <Button size="sm" variant="outline" onClick={() => handleDeleteProduct(product)}>
                         <Trash2 className="h-3.5 w-3.5" />
@@ -154,17 +156,17 @@ export function MenuManager({
         <div>
           <div className="mb-3 flex justify-end">
             <Button onClick={() => setCategoryModal({ open: true, category: null })}>
-              <Plus className="h-4 w-4" /> New Category
+              <Plus className="h-4 w-4" /> {t("menu.newCategory")}
             </Button>
           </div>
           <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full text-sm">
               <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
                 <tr>
-                  <th className="px-3 py-2">Name</th>
-                  <th className="px-3 py-2">Sort</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2 text-right">Actions</th>
+                  <th className="px-3 py-2">{t("common.name")}</th>
+                  <th className="px-3 py-2">{t("menu.sort")}</th>
+                  <th className="px-3 py-2">{t("common.status")}</th>
+                  <th className="px-3 py-2 text-right">{t("common.actions")}</th>
                 </tr>
               </thead>
               <tbody>
@@ -174,7 +176,7 @@ export function MenuManager({
                     <td className="px-3 py-2 text-muted-foreground">{cat.sort_order}</td>
                     <td className="px-3 py-2">
                       <Badge variant={cat.active ? "success" : "default"}>
-                        {cat.active ? "Active" : "Inactive"}
+                        {cat.active ? t("common.active") : t("common.inactive")}
                       </Badge>
                     </td>
                     <td className="px-3 py-2">

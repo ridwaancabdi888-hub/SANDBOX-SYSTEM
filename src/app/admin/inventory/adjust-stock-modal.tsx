@@ -7,14 +7,18 @@ import { adjustStock } from "@/lib/services/inventory";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select, Textarea } from "@/components/ui/input";
+import { useT } from "@/lib/i18n";
+import type { TranslationKey } from "@/lib/i18n";
 import type { Ingredient, StockTxnType } from "@/lib/types/domain";
 
-const TYPE_LABELS: Record<StockTxnType, string> = {
-  PURCHASE: "Purchase (add stock)",
-  ADJUSTMENT: "Adjustment",
-  WASTE: "Waste / spoilage (remove stock)",
-  RETURN: "Return (add stock)",
-  SALE: "Sale",
+// Stock transaction types are database enum values and stay as they are; only
+// the label a human reads is translated.
+const TYPE_KEYS: Record<StockTxnType, TranslationKey> = {
+  PURCHASE: "inventory.typePurchase",
+  ADJUSTMENT: "inventory.typeAdjustment",
+  WASTE: "inventory.typeWaste",
+  RETURN: "inventory.typeReturn",
+  SALE: "inventory.typeSale",
 };
 
 export function AdjustStockModal({
@@ -32,6 +36,7 @@ export function AdjustStockModal({
   const [quantity, setQuantity] = useState("");
   const [reason, setReason] = useState("");
   const [saving, setSaving] = useState(false);
+  const t = useT();
 
   const isRemoval = type === "WASTE";
 
@@ -39,7 +44,7 @@ export function AdjustStockModal({
     if (!ingredient) return;
     const qty = Number(quantity);
     if (!qty || qty <= 0) {
-      toast.error("Enter a valid quantity");
+      toast.error(t("validation.validQuantity"));
       return;
     }
     setSaving(true);
@@ -51,11 +56,11 @@ export function AdjustStockModal({
         type,
         reason: reason.trim() || type,
       });
-      toast.success("Stock updated");
+      toast.success(t("inventory.stockUpdated"));
       onSaved();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to adjust stock");
+      toast.error(err instanceof Error ? err.message : t("inventory.stockFailed"));
     } finally {
       setSaving(false);
     }
@@ -64,23 +69,26 @@ export function AdjustStockModal({
   if (!ingredient) return null;
 
   return (
-    <Modal open={open} onClose={onClose} title={`Adjust Stock — ${ingredient.name}`} size="sm">
+    <Modal open={open} onClose={onClose} title={t("inventory.adjustTitle", { name: ingredient.name })} size="sm">
       <div className="space-y-3">
         <p className="text-sm text-muted-foreground">
-          Current: <strong>{ingredient.current_quantity} {ingredient.unit}</strong>
+          {t("inventory.currentLabel")}{" "}
+          <strong>
+            {ingredient.current_quantity} {ingredient.unit}
+          </strong>
         </p>
         <div>
-          <Label htmlFor="type">Transaction type</Label>
+          <Label htmlFor="type">{t("inventory.transactionType")}</Label>
           <Select id="type" value={type} onChange={(e) => setType(e.target.value as StockTxnType)}>
-            {(["PURCHASE", "WASTE", "ADJUSTMENT", "RETURN"] as StockTxnType[]).map((t) => (
-              <option key={t} value={t}>
-                {TYPE_LABELS[t]}
+            {(["PURCHASE", "WASTE", "ADJUSTMENT", "RETURN"] as StockTxnType[]).map((value) => (
+              <option key={value} value={value}>
+                {t(TYPE_KEYS[value])}
               </option>
             ))}
           </Select>
         </div>
         <div>
-          <Label htmlFor="qty">Quantity ({ingredient.unit})</Label>
+          <Label htmlFor="qty">{t("inventory.quantityWithUnit", { unit: ingredient.unit })}</Label>
           <Input
             id="qty"
             type="number"
@@ -90,19 +98,19 @@ export function AdjustStockModal({
             onChange={(e) => setQuantity(e.target.value)}
           />
           <p className="mt-1 text-xs text-muted-foreground">
-            {isRemoval ? "This will subtract from stock." : "This will add to stock."}
+            {isRemoval ? t("inventory.willSubtract") : t("inventory.willAdd")}
           </p>
         </div>
         <div>
-          <Label htmlFor="reason">Reason</Label>
+          <Label htmlFor="reason">{t("inventory.reason")}</Label>
           <Textarea id="reason" rows={2} value={reason} onChange={(e) => setReason(e.target.value)} />
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button loading={saving} onClick={submit}>
-            Apply
+            {t("common.apply")}
           </Button>
         </div>
       </div>

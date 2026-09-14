@@ -3,10 +3,12 @@ import { searchOrders } from "@/lib/services/orders";
 import { getSettings } from "@/lib/services/settings";
 import { getPrinterProfiles } from "@/lib/services/printers";
 import { OrdersTable } from "@/components/orders/orders-table";
+import { getT } from "@/lib/i18n/server";
 
 export const dynamic = "force-dynamic";
 
 export default async function CashierOrdersPage() {
+  const t = await getT();
   const supabase = await createClient();
   const {
     data: { user },
@@ -25,7 +27,7 @@ export default async function CashierOrdersPage() {
 
   return (
     <div className="flex flex-1 flex-col p-4 lg:p-6">
-      <h1 className="mb-4 text-2xl font-bold">Orders</h1>
+      <h1 className="mb-4 text-2xl font-bold">{t("orders.title")}</h1>
       <OrdersTable
         initialOrders={orders}
         currency={settings.currency}

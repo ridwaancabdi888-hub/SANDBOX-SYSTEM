@@ -1,3 +1,9 @@
+/**
+ * Deliberately hook-free so Server Components can render these directly
+ * (`admin/activity`, `cashier/payments` both do). That is also why every
+ * string arrives as a prop rather than being translated in here — a `useT()`
+ * call would force a client boundary on those pages.
+ */
 import { ReactNode } from "react";
 import { Loader2, Inbox, AlertCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,7 +13,7 @@ export function Spinner({ className }: { className?: string }) {
   return <Loader2 className={cn("h-5 w-5 animate-spin text-accent", className)} />;
 }
 
-export function PageLoading({ label = "Loading..." }: { label?: string }) {
+export function PageLoading({ label }: { label: string }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-3 py-16 text-muted-foreground">
       <Spinner className="h-8 w-8" />
@@ -40,13 +46,15 @@ export function EmptyState({
 }
 
 export function ErrorState({
-  title = "Something went wrong",
+  title,
   description,
   onRetry,
+  retryLabel,
 }: {
-  title?: string;
+  title: string;
   description?: string;
   onRetry?: () => void;
+  retryLabel?: string;
 }) {
   return (
     <div className="flex flex-1 flex-col items-center justify-center gap-2 rounded-xl border border-dashed border-danger/30 bg-danger-bg/50 py-16 px-6 text-center">
@@ -57,7 +65,7 @@ export function ErrorState({
       {description && <p className="max-w-sm text-sm text-danger/80">{description}</p>}
       {onRetry && (
         <Button variant="outline" size="sm" className="mt-3" onClick={onRetry}>
-          <RefreshCw className="h-4 w-4" /> Retry
+          <RefreshCw className="h-4 w-4" /> {retryLabel}
         </Button>
       )}
     </div>

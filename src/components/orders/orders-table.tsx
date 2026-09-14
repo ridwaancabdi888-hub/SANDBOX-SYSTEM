@@ -15,8 +15,9 @@ import { useConfirm } from "@/components/ui/confirm-dialog";
 import { formatCurrency } from "@/lib/utils";
 import { PaymentModal } from "@/components/cashier/payment-modal";
 import { ReprintReceiptModal } from "@/components/cashier/reprint-receipt-modal";
-import { ORDER_STATUS_LABELS } from "@/lib/types/domain";
-import type { OrderWithItems, OrderStatus } from "@/lib/types/domain";
+import { ORDER_STATUS_FLOW } from "@/lib/types/domain";
+import { useT, orderStatusKey, orderSourceKey } from "@/lib/i18n";
+import type { OrderWithItems, OrderStatus, OrderSource } from "@/lib/types/domain";
 import type { PrinterProfile, ReceiptSettings } from "@/lib/printing";
 import { LocalDateTime } from "@/components/ui/local-time";
 
@@ -45,6 +46,7 @@ export function OrdersTable({
   const [payOrder, setPayOrder] = useState<OrderWithItems | null>(null);
   const [reprintOrderId, setReprintOrderId] = useState<string | null>(null);
   const confirm = useConfirm();
+  const t = useT();
 
   const orders = useRealtimeOrders(fetched, null);
 
@@ -55,11 +57,11 @@ export function OrdersTable({
       const results = await searchOrders(supabase, f);
       setFetched(results);
     } catch {
-      toast.error("Failed to load orders");
+      toast.error(t("errors.loadFailed"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const timeout = setTimeout(() => runSearch(filters), 300);
@@ -69,19 +71,19 @@ export function OrdersTable({
 
   async function handleCancel(order: OrderWithItems) {
     const ok = await confirm({
-      title: `Cancel order #${order.order_number}?`,
-      description: "This restores any deducted stock. This cannot be undone.",
-      confirmLabel: "Cancel order",
+      title: t("orders.confirmCancelTitle"),
+      description: t("orders.confirmCancelBody", { number: order.order_number }),
+      confirmLabel: t("orders.cancelOrder"),
       variant: "danger",
     });
     if (!ok) return;
     try {
       const supabase = createClient();
       await advanceOrderStatus(supabase, order.id, "CANCELLED", "Cancelled by staff");
-      toast.success("Order cancelled");
+      toast.success(t("orders.cancelled", { number: order.order_number }));
       runSearch(filters);
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to cancel");
+      toast.error(err instanceof Error ? err.message : t("orders.cancelFailed"));
     }
   }
 
@@ -90,20 +92,20 @@ export function OrdersTable({
   function rowActions(order: OrderWithItems) {
     return (
       <>
-        <Button variant="ghost" size="sm" aria-label={`View order #${order.order_number}`} onClick={() => setViewOrder(order)}>
+        <Button variant="ghost" size="sm" aria-label={t("orders.viewOrder", { number: order.order_number })} onClick={() => setViewOrder(order)}>
           <Eye className="h-4 w-4" />
         </Button>
         {showPayAction && !["COMPLETED", "CANCELLED"].includes(order.status) && (
           <Button size="sm" onClick={() => setPayOrder(order)}>
-            Pay
+            {t("orders.pay")}
           </Button>
         )}
         {receiptContext && order.status === "COMPLETED" && (
           <Button
             size="sm"
             variant="outline"
-            title="Reprint receipt"
-            aria-label={`Reprint receipt for order #${order.order_number}`}
+            title={t("orders.reprint")}
+            aria-label={t("orders.reprintReceipt", { number: order.order_number })}
             onClick={() => setReprintOrderId(order.id)}
           >
             <Printer className="h-4 w-4" />
@@ -113,7 +115,7 @@ export function OrdersTable({
           <Button
             variant="outline"
             size="sm"
-            aria-label={`Cancel order #${order.order_number}`}
+            aria-label={t("orders.cancelOrderFor", { number: order.order_number })}
             onClick={() => handleCancel(order)}
           >
             <Ban className="h-4 w-4" />
@@ -133,7 +135,7 @@ export function OrdersTable({
         <div className="relative min-w-40 flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
-            placeholder="Search order #..."
+            placeholder={t("orders.searchPlaceholder")}
             className="pl-9"
             onChange={(e) => setFilters((f) => ({ ...f, search: e.target.value }))}
           />
@@ -147,19 +149,19 @@ export function OrdersTable({
             }))
           }
         >
-          <option value="">All statuses</option>
-          {Object.entries(ORDER_STATUS_LABELS).map(([value, label]) => (
+          <option value="">{t("orders.allStatuses")}</option>
+          {ORDER_STATUS_FLOW.concat("CANCELLED").map((value) => (
             <option key={value} value={value}>
-              {label}
+              {t(orderStatusKey(value))}
             </option>
           ))}
         </Select>
       </div>
 
       {loading && orders.length === 0 ? (
-        <PageLoading />
+        <PageLoading label={t("common.loading")} />
       ) : orders.length === 0 ? (
-        <EmptyState title="No orders found" description="Try adjusting your search or filters." />
+        <EmptyState title={t("orders.empty")} description={t("orders.emptyHint")} />
       ) : (
         <>
           {/* Below `sm` the seven columns push Total, Time and the action
@@ -172,7 +174,8 @@ export function OrdersTable({
                   <div className="min-w-0">
                     <p className="font-semibold">#{order.order_number}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {order.location?.name ?? "No location"} · {order.source.replace("_", " ")}
+                      {order.location?.name ?? t("newOrder.noLocation")} ·{" "}
+                      {t(orderSourceKey(order.source as OrderSource))}
                     </p>
                   </div>
                   <StatusBadge status={order.status} />
@@ -196,13 +199,13 @@ export function OrdersTable({
           <table className="w-full text-sm">
             <thead className="bg-muted text-left text-xs uppercase text-muted-foreground">
               <tr>
-                <th className="px-3 py-2">Order</th>
-                <th className="px-3 py-2">Location</th>
-                <th className="px-3 py-2">Source</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Total</th>
-                <th className="px-3 py-2">Time</th>
-                <th className="px-3 py-2 text-right">Actions</th>
+                <th className="px-3 py-2">{t("nav.orders")}</th>
+                <th className="px-3 py-2">{t("common.location")}</th>
+                <th className="px-3 py-2">{t("orders.source")}</th>
+                <th className="px-3 py-2">{t("common.status")}</th>
+                <th className="px-3 py-2">{t("common.total")}</th>
+                <th className="px-3 py-2">{t("common.time")}</th>
+                <th className="px-3 py-2 text-right">{t("common.actions")}</th>
               </tr>
             </thead>
             <tbody>
@@ -213,7 +216,7 @@ export function OrdersTable({
                       {order.location?.name ?? "—"}
                     </td>
                     <td className="px-3 py-2 text-muted-foreground">
-                      {order.source.replace("_", " ")}
+                      {t(orderSourceKey(order.source as OrderSource))}
                     </td>
                     <td className="px-3 py-2">
                       <StatusBadge status={order.status} />
@@ -238,7 +241,7 @@ export function OrdersTable({
       <Modal
         open={!!viewOrder}
         onClose={() => setViewOrder(null)}
-        title={viewOrder ? `Order #${viewOrder.order_number}` : ""}
+        title={viewOrder ? t("orders.orderNumber", { number: viewOrder.order_number }) : ""}
         size="sm"
       >
         {viewOrder && (
@@ -250,7 +253,8 @@ export function OrdersTable({
               </span>
             </div>
             <div className="text-sm text-muted-foreground">
-              {viewOrder.location?.name ?? "No location"} · {viewOrder.source.replace("_", " ")}
+              {viewOrder.location?.name ?? t("newOrder.noLocation")} ·{" "}
+              {t(orderSourceKey(viewOrder.source as OrderSource))}
             </div>
             <div className="rounded-lg bg-muted p-3 text-sm">
               {viewOrder.items.map((i) => (
@@ -261,17 +265,21 @@ export function OrdersTable({
                     </span>
                     <span>{formatCurrency(Number(i.subtotal), currency)}</span>
                   </div>
-                  {i.note && <div className="text-xs italic text-warning">Note: {i.note}</div>}
+                  {i.note && (
+                    <div className="text-xs italic text-warning">
+                      {t("common.note")}: {i.note}
+                    </div>
+                  )}
                 </div>
               ))}
               {viewOrder.customer_note && (
                 <div className="mt-2 border-t border-border pt-2 text-xs italic text-warning">
-                  Order note: {viewOrder.customer_note}
+                  {t("orders.customerNote")}: {viewOrder.customer_note}
                 </div>
               )}
             </div>
             <div className="flex justify-between text-lg font-bold">
-              <span>Total</span>
+              <span>{t("common.total")}</span>
               <span>{formatCurrency(Number(viewOrder.total), currency)}</span>
             </div>
           </div>

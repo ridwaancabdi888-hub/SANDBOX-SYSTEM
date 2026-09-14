@@ -7,6 +7,7 @@ import { createCategory, updateCategory } from "@/lib/services/menu";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
+import { useT } from "@/lib/i18n";
 import type { Category } from "@/lib/types/domain";
 
 export function CategoryModal({
@@ -24,10 +25,11 @@ export function CategoryModal({
   const [sortOrder, setSortOrder] = useState(String(category?.sort_order ?? 0));
   const [active, setActive] = useState(category?.active ?? true);
   const [saving, setSaving] = useState(false);
+  const t = useT();
 
   async function submit() {
     if (!name.trim()) {
-      toast.error("Name is required");
+      toast.error(t("validation.nameRequired"));
       return;
     }
     setSaving(true);
@@ -39,25 +41,25 @@ export function CategoryModal({
       } else {
         await createCategory(supabase, payload);
       }
-      toast.success(category ? "Category updated" : "Category created");
+      toast.success(category ? t("menu.categoryUpdated") : t("menu.categoryCreated"));
       onSaved();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to save category");
+      toast.error(err instanceof Error ? err.message : t("menu.saveFailed"));
     } finally {
       setSaving(false);
     }
   }
 
   return (
-    <Modal open={open} onClose={onClose} title={category ? "Edit Category" : "New Category"} size="sm">
+    <Modal open={open} onClose={onClose} title={category ? t("menu.editCategory") : t("menu.newCategory")} size="sm">
       <div className="space-y-3">
         <div>
-          <Label htmlFor="c-name">Name</Label>
+          <Label htmlFor="c-name">{t("common.name")}</Label>
           <Input id="c-name" value={name} onChange={(e) => setName(e.target.value)} />
         </div>
         <div>
-          <Label htmlFor="c-sort">Sort order</Label>
+          <Label htmlFor="c-sort">{t("menu.sortOrder")}</Label>
           <Input
             id="c-sort"
             type="number"
@@ -72,14 +74,14 @@ export function CategoryModal({
             onChange={(e) => setActive(e.target.checked)}
             className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
           />
-          Active
+          {t("common.active")}
         </label>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button loading={saving} onClick={submit}>
-            Save
+            {t("common.save")}
           </Button>
         </div>
       </div>

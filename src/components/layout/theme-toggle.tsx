@@ -4,11 +4,13 @@ import { Sun, Moon, Monitor } from "lucide-react";
 import { useTheme, type Theme } from "@/lib/hooks/use-theme";
 import { useIsClient } from "@/lib/hooks/use-is-client";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
+import type { TranslationKey } from "@/lib/i18n";
 
-const OPTIONS: { value: Theme; label: string; icon: typeof Sun }[] = [
-  { value: "light", label: "Light", icon: Sun },
-  { value: "dark", label: "Dark", icon: Moon },
-  { value: "system", label: "System", icon: Monitor },
+const OPTIONS: { value: Theme; labelKey: TranslationKey; icon: typeof Sun }[] = [
+  { value: "light", labelKey: "settings.themeLight", icon: Sun },
+  { value: "dark", labelKey: "settings.themeDark", icon: Moon },
+  { value: "system", labelKey: "settings.themeSystem", icon: Monitor },
 ];
 
 /**
@@ -27,18 +29,20 @@ export function ThemeToggle({
 }) {
   const { theme, setTheme } = useTheme();
   const isClient = useIsClient();
+  const t = useT();
 
   return (
     <div
       role="radiogroup"
-      aria-label="Colour theme"
+      aria-label={t("settings.theme")}
       className={cn(
         "inline-flex items-center gap-1 rounded-lg border border-border bg-muted p-1",
         className
       )}
     >
-      {OPTIONS.map(({ value, label, icon: Icon }) => {
+      {OPTIONS.map(({ value, labelKey, icon: Icon }) => {
         const active = isClient && theme === value;
+        const label = t(labelKey);
         return (
           <button
             key={value}
@@ -74,10 +78,17 @@ export function ThemeToggle({
 export function ThemeToggleButton({ className }: { className?: string }) {
   const { theme, setTheme } = useTheme();
   const isClient = useIsClient();
+  const t = useT();
 
   const next: Theme = theme === "light" ? "dark" : theme === "dark" ? "system" : "light";
   const Icon = theme === "light" ? Sun : theme === "dark" ? Moon : Monitor;
-  const label = isClient ? `Theme: ${theme}. Switch to ${next}.` : "Switch theme";
+  const nameFor = (value: Theme) =>
+    t(OPTIONS.find((o) => o.value === value)!.labelKey);
+  // Before hydration the stored theme is unknown, so name the control rather
+  // than describe a transition we cannot yet predict.
+  const label = isClient
+    ? t("settings.themeToggleTo", { current: nameFor(theme), next: nameFor(next) })
+    : t("settings.theme");
 
   return (
     <button

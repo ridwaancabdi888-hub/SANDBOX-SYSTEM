@@ -15,6 +15,7 @@ import { Button } from "@/components/ui/button";
 import { Input, Select } from "@/components/ui/input";
 import { downloadCsv } from "@/lib/utils/csv";
 import { formatCurrency } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 type Report = Awaited<ReturnType<typeof getSalesReport>>;
 type TopProducts = Awaited<ReturnType<typeof getTopProducts>>;
@@ -45,6 +46,7 @@ export function ReportsView({
   initialKitchenActivity: ActivityCounts;
   currency: string;
 }) {
+  const t = useT();
   const [preset, setPreset] = useState("today");
   const [customFrom, setCustomFrom] = useState("");
   const [customTo, setCustomTo] = useState("");
@@ -96,44 +98,44 @@ export function ReportsView({
   return (
     <div className="flex-1 space-y-6 p-4 lg:p-6">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h1 className="text-2xl font-bold">Reports</h1>
+        <h1 className="text-2xl font-bold">{t("reports.title")}</h1>
         <div className="flex flex-wrap items-center gap-2">
           <Select className="w-auto" value={preset} onChange={(e) => handlePreset(e.target.value)}>
-            <option value="today">Today</option>
-            <option value="week">This week</option>
-            <option value="month">This month</option>
-            <option value="custom">Custom range</option>
+            <option value="today">{t("common.today")}</option>
+            <option value="week">{t("reports.thisWeek")}</option>
+            <option value="month">{t("reports.thisMonth")}</option>
+            <option value="custom">{t("reports.customRange")}</option>
           </Select>
           {preset === "custom" && (
             <>
               <Input type="date" className="w-auto" value={customFrom} onChange={(e) => setCustomFrom(e.target.value)} />
               <Input type="date" className="w-auto" value={customTo} onChange={(e) => setCustomTo(e.target.value)} />
               <Button size="sm" onClick={applyCustom} loading={loading}>
-                Apply
+                {t("common.apply")}
               </Button>
             </>
           )}
           <Button variant="outline" size="sm" onClick={exportSalesCsv}>
-            <Download className="h-4 w-4" /> Export
+            <Download className="h-4 w-4" /> {t("common.export")}
           </Button>
         </div>
       </div>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <SummaryCard label="Sales" value={formatCurrency(report.totalSales, currency)} />
-        <SummaryCard label="Expenses" value={formatCurrency(report.totalExpenses, currency)} />
-        <SummaryCard label="Net Profit" value={formatCurrency(report.netProfit, currency)} />
-        <SummaryCard label="Orders" value={String(report.totalOrders)} />
+        <SummaryCard label={t("dashboard.sales")} value={formatCurrency(report.totalSales, currency)} />
+        <SummaryCard label={t("expenses.title")} value={formatCurrency(report.totalExpenses, currency)} />
+        <SummaryCard label={t("reports.netProfit")} value={formatCurrency(report.netProfit, currency)} />
+        <SummaryCard label={t("nav.orders")} value={String(report.totalOrders)} />
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Best-Selling Products</CardTitle>
+            <CardTitle>{t("reports.bestSelling")}</CardTitle>
           </CardHeader>
           <CardContent>
             {topProducts.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No sales in this period</p>
+              <p className="text-sm text-muted-foreground">{t("reports.noSalesInPeriod")}</p>
             ) : (
               <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -141,7 +143,9 @@ export function ReportsView({
                   {topProducts.map((p) => (
                     <tr key={p.name} className="border-t border-border first:border-0">
                       <td className="py-1.5">{p.name}</td>
-                      <td className="py-1.5 text-right text-muted-foreground">{p.quantity} sold</td>
+                      <td className="py-1.5 text-right text-muted-foreground">
+                        {t("reports.soldCount", { count: p.quantity })}
+                      </td>
                       <td className="py-1.5 text-right font-medium">
                         {formatCurrency(p.revenue, currency)}
                       </td>
@@ -156,11 +160,11 @@ export function ReportsView({
 
         <Card>
           <CardHeader>
-            <CardTitle>Cashier Performance</CardTitle>
+            <CardTitle>{t("reports.cashierPerformance")}</CardTitle>
           </CardHeader>
           <CardContent>
             {cashierPerf.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No payments in this period</p>
+              <p className="text-sm text-muted-foreground">{t("reports.noPaymentsInPeriod")}</p>
             ) : (
               <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -168,7 +172,9 @@ export function ReportsView({
                   {cashierPerf.map((c) => (
                     <tr key={c.name} className="border-t border-border first:border-0">
                       <td className="py-1.5">{c.name}</td>
-                      <td className="py-1.5 text-right text-muted-foreground">{c.count} orders</td>
+                      <td className="py-1.5 text-right text-muted-foreground">
+                        {t("reports.ordersCountLabel", { count: c.count })}
+                      </td>
                       <td className="py-1.5 text-right font-medium">
                         {formatCurrency(c.total, currency)}
                       </td>
@@ -183,11 +189,11 @@ export function ReportsView({
 
         <Card>
           <CardHeader>
-            <CardTitle>Waiter Activity (orders served)</CardTitle>
+            <CardTitle>{t("reports.waiterActivity")}</CardTitle>
           </CardHeader>
           <CardContent>
             {waiterActivity.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No activity in this period</p>
+              <p className="text-sm text-muted-foreground">{t("reports.noActivityInPeriod")}</p>
             ) : (
               <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -207,11 +213,11 @@ export function ReportsView({
 
         <Card>
           <CardHeader>
-            <CardTitle>Kitchen Activity (orders marked ready)</CardTitle>
+            <CardTitle>{t("reports.kitchenActivity")}</CardTitle>
           </CardHeader>
           <CardContent>
             {kitchenActivity.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No activity in this period</p>
+              <p className="text-sm text-muted-foreground">{t("reports.noActivityInPeriod")}</p>
             ) : (
               <div className="overflow-x-auto">
               <table className="w-full text-sm">

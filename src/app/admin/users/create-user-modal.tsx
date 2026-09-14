@@ -6,6 +6,7 @@ import { createStaffUser } from "@/lib/services/users";
 import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input, Label, Select } from "@/components/ui/input";
+import { useT, roleKey } from "@/lib/i18n";
 import { ROLE_LABELS } from "@/lib/types/domain";
 import type { AppRole } from "@/lib/types/domain";
 
@@ -23,6 +24,7 @@ export function CreateUserModal({
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<AppRole>("cashier");
   const [saving, setSaving] = useState(false);
+  const t = useT();
 
   function reset() {
     setFullName("");
@@ -33,18 +35,18 @@ export function CreateUserModal({
 
   async function submit() {
     if (!fullName.trim() || !email.trim() || password.length < 8) {
-      toast.error("Fill all fields — password must be at least 8 characters");
+      toast.error(t("validation.allFieldsPassword"));
       return;
     }
     setSaving(true);
     try {
       await createStaffUser({ fullName: fullName.trim(), email: email.trim(), password, role });
-      toast.success("Staff account created");
+      toast.success(t("users.accountCreated"));
       reset();
       onSaved();
       onClose();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Failed to create user");
+      toast.error(err instanceof Error ? err.message : t("users.createFailed"));
     } finally {
       setSaving(false);
     }
@@ -57,44 +59,44 @@ export function CreateUserModal({
         reset();
         onClose();
       }}
-      title="New Staff Account"
+      title={t("users.newStaffAccount")}
       size="sm"
     >
       <div className="space-y-3">
         <div>
-          <Label htmlFor="u-name">Full name</Label>
+          <Label htmlFor="u-name">{t("users.fullName")}</Label>
           <Input id="u-name" value={fullName} onChange={(e) => setFullName(e.target.value)} />
         </div>
         <div>
-          <Label htmlFor="u-email">Email</Label>
+          <Label htmlFor="u-email">{t("auth.email")}</Label>
           <Input id="u-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
         </div>
         <div>
-          <Label htmlFor="u-password">Temporary password</Label>
+          <Label htmlFor="u-password">{t("users.temporaryPassword")}</Label>
           <Input
             id="u-password"
             type="text"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="At least 8 characters"
+            placeholder={t("users.atLeast8")}
           />
         </div>
         <div>
-          <Label htmlFor="u-role">Role</Label>
+          <Label htmlFor="u-role">{t("common.role")}</Label>
           <Select id="u-role" value={role} onChange={(e) => setRole(e.target.value as AppRole)}>
-            {Object.entries(ROLE_LABELS).map(([value, label]) => (
+            {(Object.keys(ROLE_LABELS) as AppRole[]).map((value) => (
               <option key={value} value={value}>
-                {label}
+                {t(roleKey(value))}
               </option>
             ))}
           </Select>
         </div>
         <div className="flex justify-end gap-2 pt-2">
           <Button variant="outline" onClick={onClose}>
-            Cancel
+            {t("common.cancel")}
           </Button>
           <Button loading={saving} onClick={submit}>
-            Create Account
+            {t("users.createAccount")}
           </Button>
         </div>
       </div>

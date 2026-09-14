@@ -10,12 +10,14 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "@/components/ui/states";
 import { cn, formatCurrency } from "@/lib/utils";
+import { useT, orderSourceKey } from "@/lib/i18n";
 import type {
   Category,
   Product,
   Location,
   Settings,
   OrderWithItems,
+  OrderSource,
 } from "@/lib/types/domain";
 import type { PrinterProfile } from "@/lib/printing";
 import { LocalDateTime } from "@/components/ui/local-time";
@@ -35,6 +37,7 @@ export function CashierPos({
   initialOrders: OrderWithItems[];
   printers: PrinterProfile[];
 }) {
+  const t = useT();
   const [tab, setTab] = useState<"new" | "pending">("new");
   const orders = useRealtimeOrders(initialOrders, ["NEW", "PREPARING", "READY", "SERVED"]);
   const [payingOrder, setPayingOrder] = useState<OrderWithItems | null>(null);
@@ -43,10 +46,10 @@ export function CashierPos({
     <div className="flex flex-1 flex-col p-4 lg:p-6">
       <div className="mb-4 flex items-center gap-2">
         <TabButton active={tab === "new"} onClick={() => setTab("new")} icon={ShoppingCart}>
-          New Order
+          {t("newOrder.title")}
         </TabButton>
         <TabButton active={tab === "pending"} onClick={() => setTab("pending")} icon={ClipboardList}>
-          Awaiting Payment
+          {t("payments.awaitingPayment")}
           <span className="ml-1.5 rounded-full bg-current/15 px-1.5 text-xs">{orders.length}</span>
         </TabButton>
       </div>
@@ -63,8 +66,8 @@ export function CashierPos({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {orders.length === 0 && (
             <EmptyState
-              title="No orders awaiting payment"
-              description="New orders will appear here as soon as they're created."
+              title={t("payments.noneAwaiting")}
+              description={t("payments.noneAwaitingHint")}
               icon={<ClipboardList className="h-6 w-6" />}
             />
           )}
@@ -74,7 +77,7 @@ export function CashierPos({
                 <div>
                   <div className="text-lg font-bold">#{order.order_number}</div>
                   <div className="text-sm text-muted-foreground">
-                    {order.location?.name ?? order.source.replace("_", " ")}
+                    {order.location?.name ?? t(orderSourceKey(order.source as OrderSource))}
                   </div>
                 </div>
                 <StatusBadge status={order.status} />
@@ -91,7 +94,7 @@ export function CashierPos({
                 <span className="font-bold">{formatCurrency(Number(order.total), settings.currency)}</span>
               </div>
               <Button className="mt-3 w-full" onClick={() => setPayingOrder(order)}>
-                Take Payment
+                {t("payments.takePayment")}
               </Button>
             </Card>
           ))}

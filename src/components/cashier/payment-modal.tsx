@@ -20,6 +20,7 @@ import {
 } from "@/lib/printing";
 import { formatCurrency } from "@/lib/utils";
 import type { OrderWithItems, PaymentMethod } from "@/lib/types/domain";
+import { useT, paymentMethodKey } from "@/lib/i18n";
 import { PAYMENT_METHOD_LABELS } from "@/lib/types/domain";
 
 export function PaymentModal({
@@ -40,6 +41,7 @@ export function PaymentModal({
   printers: PrinterProfile[];
 }) {
   const { service, profile, status, ready } = usePrinter(printers);
+  const t = useT();
 
   const [method, setMethod] = useState<PaymentMethod>("CASH");
   const [amountPaid, setAmountPaid] = useState<string>("");
@@ -61,7 +63,7 @@ export function PaymentModal({
   async function submit() {
     if (!order) return;
     if (paidNum < total) {
-      toast.error("Amount paid must cover the total");
+      toast.error(t("payments.mustCoverTotal"));
       return;
     }
     setSubmitting(true);
@@ -72,7 +74,7 @@ export function PaymentModal({
         method,
         amountPaid: paidNum,
       });
-      toast.success(`Order #${order.order_number} paid`);
+      toast.success(t("payments.orderPaid", { number: order.order_number }));
 
       setReceipt(
         buildReceiptData({
@@ -90,7 +92,7 @@ export function PaymentModal({
       );
       onPaid?.();
     } catch (err) {
-      toast.error(err instanceof Error ? err.message : "Payment failed");
+      toast.error(err instanceof Error ? err.message : t("payments.failed"));
     } finally {
       setSubmitting(false);
     }
@@ -106,12 +108,12 @@ export function PaymentModal({
         // Guards against a double-tap producing two receipts.
         idempotencyKey: `receipt-${order.id}`,
       });
-      if (!service.usesSystemDialog) toast.success("Receipt sent to printer");
+      if (!service.usesSystemDialog) toast.success(t("printer.sentToPrinter"));
     } catch (err) {
       if (err instanceof PrinterError) {
         toast.error(err.message, { description: err.hint });
       } else {
-        toast.error(err instanceof Error ? err.message : "Failed to print");
+        toast.error(err instanceof Error ? err.message : t("printer.printFailed"));
       }
     } finally {
       setPrinting(false);
@@ -124,7 +126,9 @@ export function PaymentModal({
     <Modal
       open={open}
       onClose={handleClose}
-      title={receipt ? "Receipt" : `Pay Order #${order.order_number}`}
+      title={
+        receipt ? t("payments.receipt") : t("payments.payOrder", { number: order.order_number })
+      }
       size="sm"
     >
       {!receipt ? (
@@ -139,28 +143,28 @@ export function PaymentModal({
               </div>
             ))}
             <div className="mt-2 flex justify-between border-t border-border pt-2 font-bold">
-              <span>Total</span>
+              <span>{t("common.total")}</span>
               <span>{formatCurrency(total, settings.currency)}</span>
             </div>
           </div>
 
           <div>
-            <Label htmlFor="method">Payment method</Label>
+            <Label htmlFor="method">{t("payments.paymentMethod")}</Label>
             <Select
               id="method"
               value={method}
               onChange={(e) => setMethod(e.target.value as PaymentMethod)}
             >
-              {Object.entries(PAYMENT_METHOD_LABELS).map(([value, label]) => (
+              {(Object.keys(PAYMENT_METHOD_LABELS) as PaymentMethod[]).map((value) => (
                 <option key={value} value={value}>
-                  {label}
+                  {t(paymentMethodKey(value))}
                 </option>
               ))}
             </Select>
           </div>
 
           <div>
-            <Label htmlFor="amount-paid">Amount paid</Label>
+            <Label htmlFor="amount-paid">{t("payments.amountPaid")}</Label>
             <div className="relative">
               <Banknote className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
@@ -189,7 +193,7 @@ export function PaymentModal({
           </div>
 
           <div className="flex justify-between rounded-lg bg-success-bg px-3 py-2 text-sm font-semibold text-success">
-            <span>Change</span>
+            <span>{t("payments.change")}</span>
             <span>{formatCurrency(change, settings.currency)}</span>
           </div>
 
@@ -200,14 +204,14 @@ export function PaymentModal({
             disabled={paidNum < total}
             onClick={submit}
           >
-            Confirm Payment
+            {t("payments.confirmPayment")}
           </Button>
         </div>
       ) : (
         <div className="space-y-4">
           <div className="flex items-center justify-center gap-2 text-success">
             <CheckCircle2 className="h-5 w-5" />
-            <span className="font-medium">Payment successful</span>
+            <span className="font-medium">{t("payments.paymentSuccessful")}</span>
           </div>
           <div className="flex items-center justify-between text-xs text-muted-foreground">
             <span>
@@ -220,15 +224,14 @@ export function PaymentModal({
           </div>
           <div className="flex gap-2">
             <Button variant="outline" className="flex-1" onClick={handleClose}>
-              Close
+              {t("common.close")}
             </Button>
             <Button className="flex-1" loading={printing} onClick={print}>
-              <Printer className="h-4 w-4" /> Print Receipt
+              <Printer className="h-4 w-4" /> {t("printer.printReceipt")}
             </Button>
           </div>
           <p className="text-center text-xs text-muted-foreground">
-            The payment is already recorded — printing can be retried or reprinted later from
-            Orders.
+            {t("payments.alreadyRecorded")}
           </p>
         </div>
       )}

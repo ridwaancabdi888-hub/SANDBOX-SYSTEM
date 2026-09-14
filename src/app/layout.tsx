@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import { AppToaster } from "@/components/layout/app-toaster";
 import { ThemeScript } from "@/components/layout/theme-script";
+import { LocaleProvider, LOCALE_DIR } from "@/lib/i18n";
+import { getLocale } from "@/lib/i18n/server";
 import "./globals.css";
 
 const inter = Inter({
@@ -14,15 +16,26 @@ export const metadata: Metadata = {
   description: "SANDBOX Cafeteria Management System",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default async function RootLayout({ children }: LayoutProps<"/">) {
+  // Read once here and hand it down. The server renders the text, so the
+  // client provider must start from the same value or hydration would differ.
+  const locale = await getLocale();
+
   return (
-    <html lang="en" suppressHydrationWarning className={`${inter.variable} h-full antialiased`}>
+    <html
+      lang={locale}
+      dir={LOCALE_DIR}
+      suppressHydrationWarning
+      className={`${inter.variable} h-full antialiased`}
+    >
       <head>
         <ThemeScript />
       </head>
       <body className="min-h-full flex flex-col">
-        {children}
-        <AppToaster />
+        <LocaleProvider locale={locale}>
+          {children}
+          <AppToaster />
+        </LocaleProvider>
       </body>
     </html>
   );

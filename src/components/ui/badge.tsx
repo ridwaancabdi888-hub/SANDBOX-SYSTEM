@@ -1,7 +1,9 @@
+"use client";
+
 import { HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
+import { useT, orderStatusKey } from "@/lib/i18n";
 import type { OrderStatus } from "@/lib/types/domain";
-import { ORDER_STATUS_LABELS } from "@/lib/types/domain";
 
 export function Badge({
   className,
@@ -41,6 +43,7 @@ const STATUS_STYLES: Record<OrderStatus, string> = {
 };
 
 export function StatusBadge({ status, className }: { status: OrderStatus; className?: string }) {
+  const t = useT();
   return (
     <span
       className={cn(
@@ -50,7 +53,7 @@ export function StatusBadge({ status, className }: { status: OrderStatus; classN
       )}
     >
       <span className="status-dot bg-current" />
-      {ORDER_STATUS_LABELS[status]}
+      {t(orderStatusKey(status))}
     </span>
   );
 }

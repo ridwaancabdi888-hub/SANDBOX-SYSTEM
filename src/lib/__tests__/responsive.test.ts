@@ -100,11 +100,14 @@ describe("responsive guard rails", () => {
   });
 
   test("the mobile drawer and its trigger are labelled", () => {
+    // The labels moved into the dictionary with the i18n work, so assert the
+    // key is wired rather than the English string — the requirement is that
+    // the controls carry an accessible name in whatever language is active.
     const shell = FILES.find((f) => rel(f.path) === "components/layout/dashboard-shell.tsx");
     assert.ok(shell);
-    assert.match(shell!.text, /aria-label="Open navigation"/);
-    assert.match(shell!.text, /aria-label="Close navigation"/);
-    // The active-nav fix must survive the responsive work.
+    assert.match(shell!.text, /aria-label=\{t\("nav\.openNavigation"\)\}/);
+    assert.match(shell!.text, /aria-label=\{t\("nav\.closeNavigation"\)\}/);
+    // The active-nav fix must survive the responsive and i18n work.
     assert.match(shell!.text, /aria-current=\{active \? "page" : undefined\}/);
   });
 

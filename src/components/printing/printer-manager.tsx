@@ -45,12 +45,24 @@ import {
   type ReceiptWidth,
 } from "@/lib/printing";
 import { cn, timeAgo } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
+import type { TranslationKey } from "@/lib/i18n";
 
-const ROLES: { value: PrinterRole; label: string }[] = [
-  { value: "RECEIPT", label: "Receipt (cashier)" },
-  { value: "KITCHEN", label: "Kitchen tickets" },
-  { value: "BAR", label: "Bar tickets" },
-  { value: "BACKUP", label: "Backup" },
+// Printer roles are database values; only the label is translated.
+const ROLES: { value: PrinterRole; labelKey: TranslationKey }[] = [
+  { value: "RECEIPT", labelKey: "printer.roleReceipt" },
+  { value: "KITCHEN", labelKey: "printer.roleKitchen" },
+  { value: "BAR", labelKey: "printer.roleBar" },
+  { value: "BACKUP", labelKey: "printer.roleBackup" },
+];
+
+const CAPABILITIES: { key: keyof PrinterProfile["capabilities"]; labelKey: TranslationKey }[] = [
+  { key: "supportsCut", labelKey: "printer.capCut" },
+  { key: "supportsQRCode", labelKey: "printer.capQr" },
+  { key: "supportsBarcode", labelKey: "printer.capBarcode" },
+  { key: "supportsBold", labelKey: "printer.capBold" },
+  { key: "supportsDrawer", labelKey: "printer.capDrawer" },
+  { key: "supportsImages", labelKey: "printer.capImages" },
 ];
 
 function describeError(error: unknown): { message: string; hint?: string } {
@@ -68,6 +80,7 @@ export function PrinterManager({
 }) {
   const router = useRouter();
   const confirm = useConfirm();
+  const t = useT();
   const { service, profile, profiles: available, status, jobs, selectPrinter, ready } =
     usePrinter(profiles);
 
@@ -93,7 +106,7 @@ export function PrinterManager({
     setLastError(null);
     try {
       await service.connect();
-      toast.success("Printer connected");
+      toast.success(t("printer.connected2"));
     } catch (error) {
       const described = describeError(error);
       setLastError(described);
@@ -103,7 +116,7 @@ export function PrinterManager({
     } finally {
       setBusy(null);
     }
-  }, [service]);
+  }, [service, t]);
 
   const handleDisconnect = useCallback(async () => {
     if (!service) return;
@@ -118,7 +131,7 @@ export function PrinterManager({
     try {
       await service.testPrint(sample);
       toast.success(
-        service.usesSystemDialog ? "Print dialog opened" : "Test receipt sent to the printer"
+        service.usesSystemDialog ? t("printer.dialogOpened") : t("printer.testSent")
       );
     } catch (error) {
       const described = describeError(error);
@@ -127,7 +140,7 @@ export function PrinterManager({
     } finally {
       setBusy(null);
     }
-  }, [service, sample]);
+  }, [service, sample, t]);
 
   const handleSave = useCallback(async () => {
     if (!draft) return;
@@ -135,15 +148,15 @@ export function PrinterManager({
     try {
       const supabase = createClient();
       await updatePrinterProfile(supabase, draft.id, draft);
-      toast.success("Printer saved");
+      toast.success(t("printer.saved"));
       setDraft(null);
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not save printer");
+      toast.error(error instanceof Error ? error.message : t("printer.saveFailed"));
     } finally {
       setBusy(null);
     }
-  }, [draft, router]);
+  }, [draft, router, t]);
 
   const handleAdd = useCallback(async () => {
     try {
@@ -163,17 +176,17 @@ export function PrinterManager({
         active: true,
       });
       selectPrinter(created.id);
-      toast.success("Printer added");
+      toast.success(t("printer.added"));
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not add printer");
+      toast.error(error instanceof Error ? error.message : t("printer.addFailed"));
     }
-  }, [profiles.length, router, selectPrinter]);
+  }, [profiles.length, router, selectPrinter, t]);
 
   const handleDelete = useCallback(async () => {
     const ok = await confirm({
-      title: `Delete "${profile.name}"?`,
-      description: "Devices using this printer will fall back to the default.",
+      title: t("menu.confirmDeleteProduct", { name: profile.name }),
+      description: t("printer.deleteBody"),
       variant: "danger",
     });
     if (!ok) return;
@@ -181,29 +194,29 @@ export function PrinterManager({
       const supabase = createClient();
       await deletePrinterProfile(supabase, profile.id);
       setDraft(null);
-      toast.success("Printer deleted");
+      toast.success(t("printer.deleted"));
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not delete printer");
+      toast.error(error instanceof Error ? error.message : t("printer.deleteFailed"));
     }
-  }, [confirm, profile, router]);
+  }, [confirm, profile, router, t]);
 
   const handleMakeDefault = useCallback(async () => {
     try {
       const supabase = createClient();
       await setDefaultPrinter(supabase, profile.id, profile.role);
-      toast.success(`Default ${profile.role.toLowerCase()} printer set`);
+      toast.success(t("printer.defaultSet", { role: profile.role.toLowerCase() }));
       router.refresh();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Could not set default");
+      toast.error(error instanceof Error ? error.message : t("printer.defaultFailed"));
     }
-  }, [profile, router]);
+  }, [profile, router, t]);
 
   if (!ready || !service) {
     return (
       <Card>
         <CardContent className="py-10 text-center text-sm text-muted-foreground">
-          Loading printer…
+          {t("printer.loadingPrinter")}
         </CardContent>
       </Card>
     );
@@ -219,20 +232,19 @@ export function PrinterManager({
           <CardHeader className="flex-row items-center justify-between space-y-0">
             <CardTitle className="flex items-center gap-2">
               <Printer className="h-4 w-4" /> {profile.name}
-              {profile.isDefault && <Badge variant="brand">Default</Badge>}
+              {profile.isDefault && <Badge variant="brand">{t("printer.default")}</Badge>}
             </CardTitle>
             <PrinterStatusPill status={status} />
           </CardHeader>
 
           <CardContent className="space-y-4">
             <div className="rounded-lg bg-muted px-3 py-2 text-xs text-muted-foreground">
-              The printer selected here applies to <strong>this device only</strong>, so each till,
-              tablet or phone can use different hardware. Printer definitions themselves are shared.
+              {t("printer.deviceScopeNote")}
             </div>
 
             {available.length > 1 && (
               <div>
-                <Label htmlFor="active-printer">Printer for this device</Label>
+                <Label htmlFor="active-printer">{t("printer.forThisDevice")}</Label>
                 <Select
                   id="active-printer"
                   value={profile.id}
@@ -268,13 +280,13 @@ export function PrinterManager({
             {(status.lastSuccessAt || status.lastError) && (
               <div className="grid grid-cols-1 gap-2 text-xs sm:grid-cols-2">
                 <div className="rounded-lg border border-border px-3 py-2">
-                  <div className="text-muted-foreground">Last successful print</div>
+                  <div className="text-muted-foreground">{t("printer.lastSuccess")}</div>
                   <div className="font-medium">
                     {status.lastSuccessAt ? timeAgo(status.lastSuccessAt) : "—"}
                   </div>
                 </div>
                 <div className="rounded-lg border border-border px-3 py-2">
-                  <div className="text-muted-foreground">Last error</div>
+                  <div className="text-muted-foreground">{t("printer.lastError")}</div>
                   <div className="font-medium text-danger">{status.lastError ?? "—"}</div>
                 </div>
               </div>
@@ -286,7 +298,7 @@ export function PrinterManager({
                 {lastError.hint && <p className="text-xs">{lastError.hint}</p>}
                 <div className="flex flex-wrap gap-2">
                   <Button size="sm" variant="outline" onClick={handleConnect}>
-                    <RefreshCw className="h-3.5 w-3.5" /> Retry
+                    <RefreshCw className="h-3.5 w-3.5" /> {t("printer.retryJob")}
                   </Button>
                   {available.length > 1 && (
                     <Button
@@ -294,7 +306,7 @@ export function PrinterManager({
                       variant="outline"
                       onClick={() => document.getElementById("active-printer")?.focus()}
                     >
-                      Choose another printer
+                      {t("printer.chooseAnother")}
                     </Button>
                   )}
                   <Button
@@ -302,10 +314,10 @@ export function PrinterManager({
                     variant="outline"
                     onClick={() => {
                       patchDraft({ connectionType: "BROWSER" });
-                      toast.message("Switched to browser print — save to keep this.");
+                      toast.message(t("printer.switchedToBrowser"));
                     }}
                   >
-                    Use browser print
+                    {t("printer.useBrowserPrint")}
                   </Button>
                 </div>
               </div>
@@ -316,14 +328,14 @@ export function PrinterManager({
                 <>
                   <Button onClick={handleConnect} loading={busy === "connect"} disabled={!supported}>
                     <PlugZap className="h-4 w-4" />
-                    {status.state === "connected" ? "Reconnect" : "Connect"}
+                    {status.state === "connected" ? t("printer.reconnect") : t("printer.connect")}
                   </Button>
                   <Button
                     variant="outline"
                     onClick={handleDisconnect}
                     disabled={status.state !== "connected"}
                   >
-                    <Plug className="h-4 w-4" /> Disconnect
+                    <Plug className="h-4 w-4" /> {t("printer.disconnect")}
                   </Button>
                 </>
               )}
@@ -333,7 +345,7 @@ export function PrinterManager({
                 loading={busy === "test"}
                 disabled={!supported}
               >
-                <FileText className="h-4 w-4" /> Print Test Receipt
+                <FileText className="h-4 w-4" /> {t("printer.testReceipt")}
               </Button>
             </div>
           </CardContent>
@@ -342,14 +354,14 @@ export function PrinterManager({
         {editable && (
           <Card>
             <CardHeader className="flex-row items-center justify-between space-y-0">
-              <CardTitle>Configure printer</CardTitle>
+              <CardTitle>{t("printer.configure")}</CardTitle>
               <div className="flex gap-2">
                 <Button size="sm" variant="outline" onClick={handleAdd}>
-                  <Plus className="h-4 w-4" /> Add
+                  <Plus className="h-4 w-4" /> {t("common.add")}
                 </Button>
                 {!profile.isDefault && (
                   <Button size="sm" variant="outline" onClick={handleMakeDefault}>
-                    Make default
+                    {t("printer.makeDefault")}
                   </Button>
                 )}
                 <Button size="sm" variant="outline" onClick={handleDelete}>
@@ -361,7 +373,7 @@ export function PrinterManager({
             <CardContent className="space-y-4">
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="p-name">Printer name</Label>
+                  <Label htmlFor="p-name">{t("printer.printerName")}</Label>
                   <Input
                     id="p-name"
                     value={editing.name}
@@ -369,7 +381,7 @@ export function PrinterManager({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="p-role">Used for</Label>
+                  <Label htmlFor="p-role">{t("printer.usedFor")}</Label>
                   <Select
                     id="p-role"
                     value={editing.role}
@@ -377,7 +389,7 @@ export function PrinterManager({
                   >
                     {ROLES.map((r) => (
                       <option key={r.value} value={r.value}>
-                        {r.label}
+                        {t(r.labelKey)}
                       </option>
                     ))}
                   </Select>
@@ -385,7 +397,7 @@ export function PrinterManager({
               </div>
 
               <div>
-                <Label htmlFor="p-connection">How is it connected?</Label>
+                <Label htmlFor="p-connection">{t("printer.howConnected")}</Label>
                 <Select
                   id="p-connection"
                   value={editing.connectionType}
@@ -393,22 +405,24 @@ export function PrinterManager({
                     patchDraft({ connectionType: e.target.value as ConnectionType })
                   }
                 >
-                  {CONNECTION_TYPES.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label}
+                  {CONNECTION_TYPES.map((ct) => (
+                    <option key={ct.value} value={ct.value}>
+                      {t(ct.labelKey as TranslationKey)}
                     </option>
                   ))}
                 </Select>
-                <p className="mt-1.5 text-xs text-muted-foreground">{info.blurb}</p>
+                <p className="mt-1.5 text-xs text-muted-foreground">
+                  {t(info.blurbKey as TranslationKey)}
+                </p>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  <strong>Works on:</strong> {info.platforms}
+                  <strong>{t("printer.worksOn")}</strong> {t(info.platformsKey as TranslationKey)}
                 </p>
               </div>
 
               {needs("host") && (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <Label htmlFor="p-host">Printer IP address</Label>
+                    <Label htmlFor="p-host">{t("printer.ipAddress")}</Label>
                     <Input
                       id="p-host"
                       value={editing.connection.host ?? ""}
@@ -419,7 +433,7 @@ export function PrinterManager({
                     />
                   </div>
                   <div>
-                    <Label htmlFor="p-port">Port</Label>
+                    <Label htmlFor="p-port">{t("printer.port")}</Label>
                     <Input
                       id="p-port"
                       type="number"
@@ -437,7 +451,7 @@ export function PrinterManager({
 
               {needs("bridgeUrl") && (
                 <div>
-                  <Label htmlFor="p-bridge">Bridge URL</Label>
+                  <Label htmlFor="p-bridge">{t("printer.bridgeUrl")}</Label>
                   <Input
                     id="p-bridge"
                     value={editing.connection.bridgeUrl ?? ""}
@@ -449,7 +463,7 @@ export function PrinterManager({
                     placeholder="http://192.168.1.20:8080"
                   />
                   <p className="mt-1 text-xs text-muted-foreground">
-                    Run <code>node scripts/print-bridge.mjs</code> on the machine with the printer.
+                    {t("printer.bridgeHint", { command: "node scripts/print-bridge.mjs" })}
                   </p>
                 </div>
               )}
@@ -457,7 +471,7 @@ export function PrinterManager({
               {needs("bleUuids") && (
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <div>
-                    <Label htmlFor="p-svc">BLE service UUID (optional)</Label>
+                    <Label htmlFor="p-svc">{t("printer.bleServiceUuid")}</Label>
                     <Input
                       id="p-svc"
                       value={editing.connection.bleServiceUuid ?? ""}
@@ -466,11 +480,11 @@ export function PrinterManager({
                           connection: { ...editing.connection, bleServiceUuid: e.target.value },
                         })
                       }
-                      placeholder="auto-detected"
+                      placeholder={t("printer.autoDetected")}
                     />
                   </div>
                   <div>
-                    <Label htmlFor="p-chr">BLE characteristic UUID (optional)</Label>
+                    <Label htmlFor="p-chr">{t("printer.bleCharUuid")}</Label>
                     <Input
                       id="p-chr"
                       value={editing.connection.bleCharacteristicUuid ?? ""}
@@ -482,7 +496,7 @@ export function PrinterManager({
                           },
                         })
                       }
-                      placeholder="auto-detected"
+                      placeholder={t("printer.autoDetected")}
                     />
                   </div>
                 </div>
@@ -490,7 +504,7 @@ export function PrinterManager({
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div>
-                  <Label htmlFor="p-width">Paper width</Label>
+                  <Label htmlFor="p-width">{t("printer.paperWidth")}</Label>
                   <Select
                     id="p-width"
                     value={String(editing.paperWidth)}
@@ -498,12 +512,12 @@ export function PrinterManager({
                       patchDraft({ paperWidth: Number(e.target.value) as ReceiptWidth })
                     }
                   >
-                    <option value="58">58 mm (32 characters)</option>
-                    <option value="80">80 mm (48 characters)</option>
+                    <option value="58">{t("printer.width58")}</option>
+                    <option value="80">{t("printer.width80")}</option>
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="p-encoding">Character encoding</Label>
+                  <Label htmlFor="p-encoding">{t("printer.encoding")}</Label>
                   <Select
                     id="p-encoding"
                     value={editing.encoding}
@@ -517,7 +531,7 @@ export function PrinterManager({
                   </Select>
                 </div>
                 <div>
-                  <Label htmlFor="p-copies">Copies</Label>
+                  <Label htmlFor="p-copies">{t("printer.copies")}</Label>
                   <Input
                     id="p-copies"
                     type="number"
@@ -531,7 +545,7 @@ export function PrinterManager({
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
-                  <Label htmlFor="p-feed">Feed lines after receipt</Label>
+                  <Label htmlFor="p-feed">{t("printer.feedLines")}</Label>
                   <Input
                     id="p-feed"
                     type="number"
@@ -542,7 +556,7 @@ export function PrinterManager({
                   />
                 </div>
                 <div>
-                  <Label htmlFor="p-density">Print density (optional)</Label>
+                  <Label htmlFor="p-density">{t("printer.density")}</Label>
                   <Select
                     id="p-density"
                     value={String(editing.connection.density ?? "")}
@@ -555,29 +569,20 @@ export function PrinterManager({
                       })
                     }
                   >
-                    <option value="">Printer default</option>
-                    <option value="0">Light</option>
-                    <option value="1">Normal</option>
-                    <option value="2">Dark</option>
+                    <option value="">{t("printer.densityDefault")}</option>
+                    <option value="0">{t("printer.densityLight")}</option>
+                    <option value="1">{t("printer.densityNormal")}</option>
+                    <option value="2">{t("printer.densityDark")}</option>
                   </Select>
                 </div>
               </div>
 
               <fieldset className="rounded-lg border border-border p-3">
                 <legend className="px-1 text-xs font-medium text-muted-foreground">
-                  Printer capabilities — commands are only sent when enabled
+                  {t("printer.capabilitiesLegend")}
                 </legend>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
-                  {(
-                    [
-                      ["supportsCut", "Has an auto-cutter"],
-                      ["supportsQRCode", "Can print QR codes"],
-                      ["supportsBarcode", "Can print barcodes"],
-                      ["supportsBold", "Supports bold text"],
-                      ["supportsDrawer", "Has a cash drawer port"],
-                      ["supportsImages", "Supports images/logos"],
-                    ] as const
-                  ).map(([key, label]) => (
+                  {CAPABILITIES.map(({ key, labelKey }) => (
                     <label key={key} className="flex items-center gap-2 text-sm touch:min-h-11">
                       <input
                         type="checkbox"
@@ -589,7 +594,7 @@ export function PrinterManager({
                         }
                         className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
                       />
-                      {label}
+                      {t(labelKey)}
                     </label>
                   ))}
                 </div>
@@ -602,16 +607,16 @@ export function PrinterManager({
                   onChange={(e) => patchDraft({ autoReconnect: e.target.checked })}
                   className="h-4 w-4 shrink-0 rounded border-border touch:h-5 touch:w-5"
                 />
-                Reconnect automatically if the printer drops
+                {t("printer.autoReconnect")}
               </label>
 
               {draft && (
                 <div className="flex justify-end gap-2 border-t border-border pt-3">
                   <Button variant="outline" onClick={() => setDraft(null)}>
-                    Cancel
+                    {t("common.cancel")}
                   </Button>
                   <Button loading={busy === "save"} onClick={handleSave}>
-                    <Save className="h-4 w-4" /> Save printer
+                    <Save className="h-4 w-4" /> {t("printer.savePrinter")}
                   </Button>
                 </div>
               )}
@@ -623,28 +628,22 @@ export function PrinterManager({
 
         <Card className="border-warning/30 bg-warning-bg/50">
           <CardContent className="pt-5 text-xs text-warning">
-            <p className="font-semibold">Hardware verification status</p>
-            <p className="mt-1">
-              Only <strong>browser/system print</strong> has been verified end to end here, plus
-              the LAN and bridge transports against mock printers. Bluetooth BLE, RawBT and real
-              hardware have not been tested — treat a successful test print on your own printer as
-              the real confirmation.
-            </p>
+            <p className="font-semibold">{t("printer.verificationTitle")}</p>
+            <p className="mt-1">{t("printer.verificationBody")}</p>
           </CardContent>
         </Card>
       </div>
 
       <Card className="h-fit">
         <CardHeader>
-          <CardTitle>Test receipt preview</CardTitle>
+          <CardTitle>{t("printer.previewTitle")}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto rounded-lg border border-border bg-paper p-2">
             <ReceiptDocument data={sample} profile={editing} />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            Rendered with the same layout engine as the printed output at {editing.paperWidth}mm,
-            so wrapping and column alignment match the paper exactly.
+            {t("printer.previewNote", { width: editing.paperWidth })}
           </p>
         </CardContent>
       </Card>
