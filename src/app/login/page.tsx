@@ -3,7 +3,6 @@ import { createClient } from "@/lib/supabase/server";
 import { getSettings } from "@/lib/services/settings";
 import { BrandLogo } from "@/components/layout/brand-logo";
 import { getT } from "@/lib/i18n/server";
-import { LanguageToggle } from "@/components/layout/language-toggle";
 import { LoginForm } from "./login-form";
 
 export const dynamic = "force-dynamic";
@@ -40,11 +39,6 @@ export default async function LoginPage({
         <Suspense>
           <LoginFormWrapper searchParams={searchParams} />
         </Suspense>
-        {/* Language is reachable before sign-in: a Somali-speaking cashier
-            should not have to read an English login screen to find it. */}
-        <div className="mt-6 flex justify-center">
-          <LanguageToggle size="sm" />
-        </div>
       </div>
     </div>
   );
