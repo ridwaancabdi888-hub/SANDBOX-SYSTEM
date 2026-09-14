@@ -53,3 +53,12 @@ export async function resetStaffPassword(id: string, newPassword: string) {
   });
   return handleJson(res);
 }
+
+/**
+ * Removes a staff account. The server blocks deleting yourself and deleting the
+ * last active admin, so the UI can offer this freely and surface the message.
+ */
+export async function deleteStaffUser(id: string) {
+  const res = await fetch(`/api/admin/users/${id}`, { method: "DELETE" });
+  return handleJson(res);
+}

@@ -27,6 +27,14 @@ service-role client in an API route under `src/app/api/admin/` and gate it with
 `requireRole(["admin"])`. `SUPABASE_SERVICE_ROLE_KEY` must never reach the
 browser.
 
+User management lives in `src/app/api/admin/users/`. Its safety rules are
+enforced on the server, not in the UI: an admin cannot delete, demote or
+deactivate themselves, and the last active admin cannot be deleted. `profiles`
+has no foreign key to `auth.users`, so deleting a user removes the auth row
+first (that revokes sign-in) and then the profile. Business history survives
+because every actor column (`orders.created_by`, `payments.cashier_id`, …) is
+`ON DELETE SET NULL`. `user-management.test.ts` guards all of this.
+
 ## Realtime
 
 Call `supabase.realtime.setAuth(session.access_token)` **before** subscribing.
@@ -202,10 +210,10 @@ Facts that decide the design; don't re-litigate them:
 - Don't use TypeScript **parameter properties** (`constructor(private x)`) in
   this module: tests run under Node's type-stripping, which rejects them.
 
-Changing any of it? Run `npm test` — 110 tests cover encoding, layout, capability
+Changing any of it? Run `npm test` — 121 tests cover encoding, layout, capability
 gating, logo raster gating, the queue (ordering, dedupe, retry, failure), every
-adapter against mock printers, the menu ALL filter, the responsive guards and
-the locale dictionaries.
+adapter against mock printers, the menu ALL filter, the responsive guards, the
+locale dictionaries and the user-management guards.
 
 ## Checks before calling something done
 
