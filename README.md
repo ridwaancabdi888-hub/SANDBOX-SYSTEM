@@ -217,7 +217,7 @@ docs/THERMAL-PRINTING.md
 npm run dev          # dev server
 npm run build        # production build
 npm run lint         # eslint
-npm test             # ESC/POS unit tests (node:test, no extra deps)
+npm test             # all node:test suites, including ESC/POS and PWA checks
 npm run seed:users   # create the four demo accounts
 
 # reference print bridge (see docs/THERMAL-PRINTING.md)
