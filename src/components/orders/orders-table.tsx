@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { toast } from "sonner";
 import { Search, Eye, Ban, Printer } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
@@ -20,6 +20,7 @@ import { useT, orderStatusKey, orderSourceKey } from "@/lib/i18n";
 import type { OrderWithItems, OrderStatus, OrderSource } from "@/lib/types/domain";
 import type { PrinterProfile, ReceiptSettings } from "@/lib/printing";
 import { LocalDateTime } from "@/components/ui/local-time";
+import { beginLatestRequest, isLatestRequest } from "@/lib/latest-request";
 
 export function OrdersTable({
   initialOrders,
@@ -45,29 +46,45 @@ export function OrdersTable({
   const [viewOrder, setViewOrder] = useState<OrderWithItems | null>(null);
   const [payOrder, setPayOrder] = useState<OrderWithItems | null>(null);
   const [reprintOrderId, setReprintOrderId] = useState<string | null>(null);
+  const searchSequence = useRef(0);
   const confirm = useConfirm();
   const t = useT();
 
   const orders = useRealtimeOrders(fetched, null);
 
-  const runSearch = useCallback(async (f: OrderFilters) => {
+  const runSearch = useCallback(async (
+    f: OrderFilters,
+    requestToken = beginLatestRequest(searchSequence)
+  ) => {
     setLoading(true);
     try {
       const supabase = createClient();
       const results = await searchOrders(supabase, f);
+      if (!isLatestRequest(searchSequence, requestToken)) return;
       setFetched(results);
     } catch {
+      if (!isLatestRequest(searchSequence, requestToken)) return;
       toast.error(t("errors.loadFailed"));
     } finally {
-      setLoading(false);
+      if (isLatestRequest(searchSequence, requestToken)) setLoading(false);
     }
   }, [t]);
 
   useEffect(() => {
-    const timeout = setTimeout(() => runSearch(filters), 300);
+    // Invalidate an in-flight search as soon as filters change, rather than
+    // waiting for the debounce timer to start the replacement request.
+    const requestToken = beginLatestRequest(searchSequence);
+    const timeout = setTimeout(() => runSearch(filters, requestToken), 300);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [filters]);
+
+  useEffect(() => {
+    return () => {
+      // Prevent a request that resolves after unmount from updating state.
+      beginLatestRequest(searchSequence);
+    };
+  }, []);
 
   async function handleCancel(order: OrderWithItems) {
     const ok = await confirm({
