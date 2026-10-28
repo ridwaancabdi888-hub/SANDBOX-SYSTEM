@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useId } from "react";
 import { Bell, Volume2, VolumeX, CheckCheck } from "lucide-react";
 import { useNotifications } from "@/lib/hooks/use-notifications";
 import { cn } from "@/lib/utils";
-import { useT } from "@/lib/i18n";
+import { usePlural, useT } from "@/lib/i18n";
 import type { Notification } from "@/lib/types/domain";
 import { LocalDateTime } from "@/components/ui/local-time";
 
@@ -19,41 +19,73 @@ export function NotificationBell({
     useNotifications(initial);
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelId = useId();
+  const headingId = `${panelId}-title`;
   const t = useT();
+  const plural = usePlural();
+  const triggerLabel = unreadCount > 0
+    ? `${t("notifications.title")}: ${plural("notifications.unreadCount", unreadCount)}`
+    : t("notifications.title");
 
   useEffect(() => {
-    function onClick(e: MouseEvent) {
+    if (!open) return;
+
+    function onPointerDown(e: MouseEvent) {
       if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
     }
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
+
+    function onKeyDown(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      e.preventDefault();
+      setOpen(false);
+      triggerRef.current?.focus();
+    }
+
+    document.addEventListener("mousedown", onPointerDown);
+    document.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", onPointerDown);
+      document.removeEventListener("keydown", onKeyDown);
+    };
+  }, [open]);
 
   return (
     <div className="relative" ref={ref}>
       <button
+        ref={triggerRef}
+        type="button"
         onClick={() => setOpen((o) => !o)}
         className="relative flex items-center justify-center rounded-lg p-2 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
-        aria-label={t("notifications.title")}
+        aria-label={triggerLabel}
+        aria-controls={panelId}
+        aria-expanded={open}
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
+          <span aria-hidden="true" className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold text-white">
             {unreadCount > 9 ? "9+" : unreadCount}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 z-40 mt-2 w-80 max-w-[calc(100vw-1.5rem)] rounded-xl border border-border bg-card shadow-lg">
+        <div
+          id={panelId}
+          role="region"
+          aria-labelledby={headingId}
+          className="absolute right-0 z-40 mt-2 w-80 max-w-[calc(100vw-1.5rem)] rounded-xl border border-border bg-card shadow-lg"
+        >
           <div className="flex items-center justify-between border-b border-border p-3">
-            <span className="font-semibold text-sm">{t("notifications.title")}</span>
+            <span id={headingId} className="font-semibold text-sm">{t("notifications.title")}</span>
             <div className="flex items-center gap-1">
               {showSoundToggle && (
                 <button
+                  type="button"
                   onClick={toggleSound}
                   className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
                   title={soundEnabled ? t("notifications.muteSound") : t("notifications.enableSound")}
+                  aria-label={soundEnabled ? t("notifications.muteSound") : t("notifications.enableSound")}
                 >
                   {soundEnabled ? (
                     <Volume2 className="h-4 w-4" />
@@ -64,9 +96,11 @@ export function NotificationBell({
               )}
               {unreadCount > 0 && (
                 <button
+                  type="button"
                   onClick={markAllRead}
                   className="flex items-center justify-center rounded-md p-1.5 text-muted-foreground hover:bg-muted touch:min-h-11 touch:min-w-11"
                   title={t("notifications.markAllRead")}
+                  aria-label={t("notifications.markAllRead")}
                 >
                   <CheckCheck className="h-4 w-4" />
                 </button>
@@ -80,6 +114,7 @@ export function NotificationBell({
               notifications.map((n) => (
                 <button
                   key={n.id}
+                  type="button"
                   onClick={() => markRead(n.id)}
                   className={cn(
                     "flex w-full flex-col gap-0.5 border-b border-border px-3 py-2.5 text-left last:border-0 hover:bg-muted",
