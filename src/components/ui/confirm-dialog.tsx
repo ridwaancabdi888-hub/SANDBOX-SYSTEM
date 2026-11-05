@@ -41,7 +41,12 @@ export function ConfirmProvider({ children }: { children: ReactNode }) {
   return (
     <ConfirmContext.Provider value={{ confirm }}>
       {children}
-      <Modal open={!!state} onClose={() => handle(false)} size="sm">
+      <Modal
+        open={!!state}
+        onClose={() => handle(false)}
+        ariaLabel={state?.options.title}
+        size="sm"
+      >
         {state && (
           <div>
             <div className="flex items-start gap-3">

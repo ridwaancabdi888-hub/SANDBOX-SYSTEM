@@ -1,15 +1,17 @@
 "use client";
 
-import { ReactNode, useEffect } from "react";
+import { ReactNode, useEffect, useId, useRef } from "react";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
+import { containModalFocus, focusModal, restoreModalFocus } from "@/lib/modal-focus";
 
 export function Modal({
   open,
   onClose,
   title,
   description,
+  ariaLabel,
   children,
   size = "md",
 }: {
@@ -17,18 +19,42 @@ export function Modal({
   onClose: () => void;
   title?: string;
   description?: string;
+  /** Accessible name for a dialog that intentionally renders no title header. */
+  ariaLabel?: string;
   children: ReactNode;
   size?: "sm" | "md" | "lg" | "xl";
 }) {
   const t = useT();
+  const titleId = useId();
+  const descriptionId = useId();
+  const panelRef = useRef<HTMLDivElement>(null);
+  const restoreFocusTo = useRef<HTMLElement | null>(null);
+
   useEffect(() => {
     if (!open) return;
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
+
+    restoreFocusTo.current = document.activeElement as HTMLElement | null;
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        onClose();
+        return;
+      }
+
+      if (panelRef.current) {
+        containModalFocus(event, panelRef.current, document.activeElement);
+      }
+    };
     document.addEventListener("keydown", onKey);
+
+    const { overflow } = document.body.style;
     document.body.style.overflow = "hidden";
+    if (panelRef.current) focusModal(panelRef.current);
+
     return () => {
       document.removeEventListener("keydown", onKey);
-      document.body.style.overflow = "";
+      document.body.style.overflow = overflow;
+      restoreModalFocus(restoreFocusTo.current);
     };
   }, [open, onClose]);
 
@@ -49,8 +75,13 @@ export function Modal({
         aria-hidden
       />
       <div
+        ref={panelRef}
         role="dialog"
         aria-modal="true"
+        aria-labelledby={title ? titleId : undefined}
+        aria-describedby={description ? descriptionId : undefined}
+        aria-label={!title ? ariaLabel : undefined}
+        tabIndex={-1}
         className={cn(
           "relative z-10 flex max-h-[92vh] w-full flex-col overflow-hidden rounded-xl bg-card shadow-xl sm:max-h-[90vh]",
           sizeClasses[size]
@@ -59,9 +90,15 @@ export function Modal({
         {(title || description) && (
           <div className="flex shrink-0 items-start justify-between gap-3 border-b border-border p-4 sm:p-5">
             <div className="min-w-0">
-              {title && <h2 className="text-base font-semibold sm:text-lg">{title}</h2>}
+              {title && (
+                <h2 id={titleId} className="text-base font-semibold sm:text-lg">
+                  {title}
+                </h2>
+              )}
               {description && (
-                <p className="mt-0.5 text-sm text-muted-foreground">{description}</p>
+                <p id={descriptionId} className="mt-0.5 text-sm text-muted-foreground">
+                  {description}
+                </p>
               )}
             </div>
             <button
