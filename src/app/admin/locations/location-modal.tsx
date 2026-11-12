@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
 import { createLocation, updateLocation } from "@/lib/services/locations";
@@ -8,6 +8,7 @@ import { Modal } from "@/components/ui/modal";
 import { Button } from "@/components/ui/button";
 import { Input, Label } from "@/components/ui/input";
 import { useT } from "@/lib/i18n";
+import { normalizeLocationCode } from "@/lib/location-code";
 import type { Location } from "@/lib/types/domain";
 
 export function LocationModal({
@@ -27,15 +28,16 @@ export function LocationModal({
   const [saving, setSaving] = useState(false);
   const t = useT();
 
-  async function submit() {
-    if (!name.trim() || !code.trim()) {
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const slug = normalizeLocationCode(code);
+    if (!name.trim() || !slug) {
       toast.error(t("validation.nameAndCodeRequired"));
       return;
     }
     setSaving(true);
     try {
       const supabase = createClient();
-      const slug = code.trim().toLowerCase().replace(/[^a-z0-9-]/g, "-");
       if (location) {
         await updateLocation(supabase, location.id, { name: name.trim(), code: slug, active });
       } else {
@@ -53,14 +55,14 @@ export function LocationModal({
 
   return (
     <Modal open={open} onClose={onClose} title={location ? t("locations.editLocation") : t("locations.newQrLocation")} size="sm">
-      <div className="space-y-3">
+      <form className="space-y-3" onSubmit={submit}>
         <div>
           <Label htmlFor="l-name">{t("common.name")}</Label>
-          <Input id="l-name" value={name} onChange={(e) => setName(e.target.value)} placeholder={t("locations.namePlaceholder")} />
+          <Input id="l-name" required value={name} onChange={(e) => setName(e.target.value)} placeholder={t("locations.namePlaceholder")} />
         </div>
         <div>
           <Label htmlFor="l-code">{t("locations.codeInUrl")}</Label>
-          <Input id="l-code" value={code} onChange={(e) => setCode(e.target.value)} placeholder={t("locations.codePlaceholder")} />
+          <Input id="l-code" required value={code} onChange={(e) => setCode(e.target.value)} placeholder={t("locations.codePlaceholder")} />
         </div>
         <label className="flex items-center gap-2 text-sm touch:min-h-11">
           <input
@@ -72,14 +74,14 @@ export function LocationModal({
           {t("common.active")}
         </label>
         <div className="flex justify-end gap-2 pt-2">
-          <Button variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button loading={saving} onClick={submit}>
+          <Button type="submit" loading={saving}>
             {t("common.save")}
           </Button>
         </div>
-      </div>
+      </form>
     </Modal>
   );
 }

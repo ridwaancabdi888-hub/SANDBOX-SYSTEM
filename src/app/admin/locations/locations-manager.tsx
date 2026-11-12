@@ -87,8 +87,13 @@ export function LocationsManager({
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {initialLocations.map((loc) => (
             <Card key={loc.id} className="flex flex-col items-center gap-3 p-4">
-              <button onClick={() => setQrModal({ open: true, location: loc })}>
-                <QRCodeSVG value={`${appUrl}/menu/${loc.code}`} size={100} level="M" />
+              <button
+                type="button"
+                aria-label={t("locations.viewQrLabel", { name: loc.name })}
+                className="rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500 focus-visible:ring-offset-2"
+                onClick={() => setQrModal({ open: true, location: loc })}
+              >
+                <QRCodeSVG aria-hidden="true" value={`${appUrl}/menu/${loc.code}`} size={100} level="M" />
               </button>
               <div className="text-center">
                 <p className="font-semibold">{loc.name}</p>
@@ -102,6 +107,9 @@ export function LocationsManager({
                   size="sm"
                   variant="outline"
                   className="flex-1"
+                  aria-label={loc.active
+                    ? t("locations.deactivateLabel", { name: loc.name })
+                    : t("locations.activateLabel", { name: loc.name })}
                   onClick={() => toggleActive(loc)}
                 >
                   <Power className="h-3.5 w-3.5" />
@@ -110,11 +118,17 @@ export function LocationsManager({
                   size="sm"
                   variant="outline"
                   className="flex-1"
+                  aria-label={t("locations.editLabel", { name: loc.name })}
                   onClick={() => setFormModal({ open: true, location: loc })}
                 >
                   <Pencil className="h-3.5 w-3.5" />
                 </Button>
-                <Button size="sm" variant="outline" onClick={() => handleDelete(loc)}>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  aria-label={t("locations.deleteLabel", { name: loc.name })}
+                  onClick={() => handleDelete(loc)}
+                >
                   <Trash2 className="h-3.5 w-3.5" />
                 </Button>
               </div>
